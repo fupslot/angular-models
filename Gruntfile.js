@@ -2,13 +2,15 @@
 
 module.exports = function (grunt) {
   require('jit-grunt')(grunt, {
-    injector: 'grunt-asset-injector',
+    injector: 'grunt-asset-injector'
   });
 
   grunt.initConfig({
     app: {
-      demo: 'demo',
-      src: 'src'
+      tmp: './.tmp',
+      dist: './dist',
+      demo: './demo',
+      src: './src'
     },
     pkg: grunt.file.readJSON('package.json'),
     watch: {
@@ -26,8 +28,7 @@ module.exports = function (grunt) {
       scripts: {
         options: {
           transform: function(filePath) {
-            filePath = filePath.replace('/src', '../src');
-            filePath = filePath.replace('/demo', '../demo');
+            filePath = filePath.replace('\/\.', '..');
             return '<script src="' + filePath + '"></script>';
           },
           starttag: '<!-- injector:js -->',
@@ -36,7 +37,7 @@ module.exports = function (grunt) {
         files: {
           '<%= app.demo %>/index.html': [
               [
-                '<%= app.src %>/**/*.js',
+                '<%= app.dist %>/<%= pkg.name%>.js',
                 '<%= app.demo %>/app/**/*.js',
                 '!<%= app.src %>/**/*.spec.js'
               ]
@@ -57,19 +58,34 @@ module.exports = function (grunt) {
     },
     // Concat
     concat: {
-      'default': {
+      dist: {
         options: {
-            separator: '\n'
+            separator: '\n',
+            banner: '(function(angular) {\n',
+            footer: '\n})(angular);',
         },
         src: ['src/**/*.js', '!src/**/*.spec.js'],
-        dest: './dist/<%= appFileDest %>'
+        dest: '<%= app.dist %>/<%= pkg.name %>.js'
+      }
+    },
+    // Uglify
+    uglify: {
+      dist: {
+        options: {
+          enclose: {angular:'angular'},
+          sourceMap: true,
+          sourceMapName: '<%= app.dist%>/<%= pkg.name %>.map'
+        },
+        files: {
+          '<%= app.dist%>/<%= pkg.name %>.min.js': ['src/**/*.js', '!src/**/*.spec.js']
+        }
       }
     },
     // Test settings
     karma: {
       unit: {
         configFile: 'karma.conf.js',
-        singleRun: false
+        singleRun: true
       }
     },
     connect: {
@@ -89,11 +105,7 @@ module.exports = function (grunt) {
     }
   });
 
-  grunt.registerTask('build', ['clean:dist', '']);
+  grunt.registerTask('build', ['clean:dist', 'concat:dist', 'uglify:dist']);
 
-  grunt.registerTask('default', [
-    'wiredep','injector','connect','watch'
-  ]);
-
-  grunt.registerTask('test', ['connect:unit', 'jasmine']);
+  grunt.registerTask('serve', ['wiredep','injector','connect','watch']);
 };

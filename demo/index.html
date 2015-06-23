@@ -9,15 +9,46 @@
 	<!-- endbower -->
 </head>
 <body>
-	<div ng-controller="appCtrl"></div>
+	<div ng-controller="appCtrl as mv">
+		<ul>
+			<li ng-repeat="person in mv.persons.models">
+				<!-- <div ng-bind="::person.attributes.name"></div> -->
+				<div>
+					<span ng-bind="person.get('name')"></span>
+					<button ng-click="person.save()">save</button>
+					<input type="text" ng-model="person.attributes.name">
+				</div>
+			</li>
+		</ul>
+		<div>Total models: <span ng-bind="mv.persons.length"></span></div>
+		<hr>
+		<form name="form" ng-submit="mv.formSubmit()">
+			<input type="text" ng-model="mv.model.name">
+			<input type="submit" value="Add">
+			<input type="reset" value="Reset">
+		</form>
+	</div>
+	<div ng-controller="appCtrl as mv">
+		<ul>
+			<li ng-repeat="person in mv.persons.models">
+				<!-- <div ng-bind="::person.attributes.name"></div> -->
+				<div>
+					<span ng-bind="person.get('name')"></span>
+					<button ng-click="person.save()">save</button>
+					<input type="text" ng-model="person.attributes.name">
+				</div>
+			</li>
+		</ul>
+		<div>Total models: <span ng-bind="mv.persons.length"></span></div>
+		<hr>
+		<form name="form" ng-submit="mv.formSubmit()">
+			<input type="text" ng-model="mv.model.name">
+			<input type="submit" value="Add">
+			<input type="reset" value="Reset">
+		</form>
+	</div>
 	<!-- injector:js -->
-	<script src="../src/angular-models.js"></script>
-	<script src="../src/core/baseModel.js"></script>
-	<script src="../src/core/events.js"></script>
-	<script src="../src/core/extend.js"></script>
-	<script src="../src/core/sync.js"></script>
-	<script src="../src/exceptions/validation.js"></script>
-	<script src="../src/helpers/helpers.js"></script>
+	<script src="../dist/angular.models.js"></script>
 	<script src="../demo/app/app.js"></script>
 	<!-- endinjector -->
 </body>

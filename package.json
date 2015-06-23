@@ -1,6 +1,6 @@
 {
-  "name": "angular-models",
-  "version": "1.0.0",
+  "name": "angular.models",
+  "version": "0.0.1",
   "description": "Base classes Model and Collection for Angular",
   "main": "index.js",
   "scripts": {

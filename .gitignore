@@ -1,6 +1,5 @@
 .tmp
 .idea
-dist
 screenshots
 vendors
 node_modules

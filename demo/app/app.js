@@ -1,19 +1,29 @@
 angular.module('myApp', ['angular.models'])
-  .controller('appCtrl', function ($parse, BaseModel) {
+  .factory('PersonModel', function(BaseModel){
+    return BaseModel.extend({
+      urlRoot: '/persons'
+    });
+  })
+
+  .factory('PersonCollection', function(BaseCollection, PersonModel){
+    return BaseCollection.extend({
+      model: PersonModel
+    });
+  })
+
+  .service('Persons', function(PersonCollection) {
+    return new PersonCollection();
+  })
+
+  .controller('appCtrl', function (Persons) {
     'use strict';
 
-    var Person = BaseModel.extend({
-        urlRoot: '/persons'
-    });
-    var person = new Person({name:'Bon Jovi'});
-    person.save()
-      .then(function(){
-        console.log('1');
-      }, function(){
-        console.log('2');
-      })
-      .catch(function(response) {
-        console.log(response);
-      });
-    console.log(person);
+    var ctrl = this;
+    ctrl.model = {};
+
+    ctrl.persons = Persons;
+
+    ctrl.formSubmit = function formSubmit() {
+      ctrl.persons.add(ctrl.model);
+    };
 });
