@@ -1,0 +1,29 @@
+{
+  "name": "angular-models",
+  "version": "1.0.0",
+  "authors": [
+    "Eugene Brodsky <eugene.brodsky@autodesk.com>"
+  ],
+  "description": "Base classes Model and Collection for Angular",
+  "main": "dist/angular-models.js",
+  "keywords": [
+    "model",
+    "collection",
+    "angular",
+    "backbone",
+    "class"
+  ],
+  "license": "GNU",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angular": "~1.4.1",
+    "lodash": "~3.9.3",
+    "angular-mocks": "~1.4.1"
+  }
+}
