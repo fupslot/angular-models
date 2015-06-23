@@ -9,6 +9,7 @@ describe('Core: BaseCollection', function () {
       });
 
       var person = new Persons();
+      // TODO: Write BaseCollection Test
     }));
   });
 });

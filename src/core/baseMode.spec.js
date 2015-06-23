@@ -15,7 +15,7 @@ describe('Core: baseModel', function () {
 
     beforeEach(inject(function($http, $httpBackend, BaseModel){
       http = $http;
-      httpBackend = $httpBackend;
+      httpBackend = $httpBackend; // Doesn't work, Findout why!!!
       Person = BaseModel.extend({
         urlRoot: '/persons'
       });

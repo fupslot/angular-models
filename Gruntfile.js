@@ -51,6 +51,20 @@ module.exports = function (grunt) {
         exclude: ['/angular-mocks/']
       }
     },
+    // Clean
+    clean: {
+      'dist': ['dist/*']
+    },
+    // Concat
+    concat: {
+      'default': {
+        options: {
+            separator: '\n'
+        },
+        src: ['src/**/*.js', '!src/**/*.spec.js'],
+        dest: './dist/<%= appFileDest %>'
+      }
+    },
     // Test settings
     karma: {
       unit: {
@@ -74,6 +88,8 @@ module.exports = function (grunt) {
       }
     }
   });
+
+  grunt.registerTask('build', ['clean:dist', '']);
 
   grunt.registerTask('default', [
     'wiredep','injector','connect','watch'
