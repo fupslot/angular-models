@@ -18,8 +18,11 @@
     "**/.*",
     "node_modules",
     "bower_components",
+    "vendors",
+    "src",
     "test",
-    "tests"
+    "tests",
+    "demo"
   ],
   "dependencies": {
     "angular": ">=1.30.",

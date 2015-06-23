@@ -26,4 +26,4 @@ angular.module('myApp', ['angular.models'])
     ctrl.formSubmit = function formSubmit() {
       ctrl.persons.add(ctrl.model);
     };
-});
+  });
