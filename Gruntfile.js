@@ -49,7 +49,7 @@ module.exports = function (grunt) {
     wiredep: {
       target: {
         src: '<%= app.demo %>/index.html',
-        exclude: ['/angular-mocks/']
+        exclude: []
       }
     },
     // Clean

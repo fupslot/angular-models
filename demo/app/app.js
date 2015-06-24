@@ -23,6 +23,13 @@ angular.module('myApp', ['angular.models', 'ngMockE2E'])
       .when('GET', '/persons')
       .respond([{id:1, name:'Bon Jovi'}]);
 
+    $httpBackend
+      .when('POST', '/persons')
+      .respond([{id:2, name:'Richie'}]);
+    $httpBackend
+      .when('DELETE', /\/persons\/\d/)
+      .respond(204, '');
+
     var ctrl = this;
     ctrl.model = {};
 
@@ -31,6 +38,13 @@ angular.module('myApp', ['angular.models', 'ngMockE2E'])
     ctrl.persons.fetch().then(function(persons){
       console.log(persons);
     });
+
+    ctrl.persons.create({name:'Richie'});
+
+    ctrl.destroyFirst = function() {
+      var p = ctrl.persons.first();
+      p.destroy();
+    };
 
     ctrl.formSubmit = function formSubmit() {
       ctrl.persons.add(ctrl.model);

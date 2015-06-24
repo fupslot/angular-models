@@ -484,7 +484,7 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
       // Return a copy of the model's `attributes` object.
       toJSON: function() {
         var self = this;
-        var obj = angular.merge({}, this.attributes);
+        var obj = _.cloneDeep({}, this.attributes);
 
         if (_.isArray(this.serializeModel) && this.serializeModel.length) {
           _.each(this.serializeModel, function (key) {
@@ -726,7 +726,7 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
             }
             model.trigger('sync', model);
             resolve(model);
-          }
+          };
           WrapError(model, reject, options);
           model.sync(method, model, options);
         });
@@ -772,8 +772,8 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
           if (model.isNew()) {
             return options.success();
           }
-          WrapError(this, reject, options);
-          model.sync('delete', this, options);
+          WrapError(model, reject, options);
+          model.sync('DELETE', model, options);
         });
       },
 
