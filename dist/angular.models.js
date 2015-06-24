@@ -709,7 +709,7 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
       save: function(options) {
         options = _.extend({validate: true}, options);
         var model = this;
-        var method = model.isNew() ? 'POST' : 'UPDATE';
+        var method = model.isNew() ? 'POST' : 'PUT';
 
         return $q(function (resolve, reject) {
           if (!model.url()) {

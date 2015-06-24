@@ -26,9 +26,13 @@ angular.module('myApp', ['angular.models', 'ngMockE2E'])
     $httpBackend
       .when('POST', '/persons')
       .respond([{id:2, name:'Richie'}]);
+
     $httpBackend
       .when('DELETE', /\/persons\/\d/)
       .respond(204, '');
+    $httpBackend
+      .when('PUT', /\/persons\/\d/)
+      .respond(200, {id: 1, name:'Bon Jovi2'});
 
     var ctrl = this;
     ctrl.model = {};
