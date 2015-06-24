@@ -49,7 +49,9 @@ angular.module('angular.models.core.sync', ['angular.models.helper'])
       //     error.call(options.context, response);
       //   }
       // };
-      return $http(params);
+      return $http(params)
+        .success(options.success)
+        .error(options.error);
     }
 
     return Sync;

@@ -293,14 +293,14 @@ angular.module('angular.models.core.collection', ['angular.models.exception.vali
         return $q(function (resolve, reject) {
           options = _.extend({}, options, {parse: true});
 
-          options.success = function (response) {
+          options.success = function success (response) {
             self.set(response, options);
             self.trigger('fetched', self);
             resolve(self);
           };
 
           WrapError(self, reject, options);
-          Sync.call(self, 'GET', self, options);
+          Sync('GET', self, options);
         });
       },
 
