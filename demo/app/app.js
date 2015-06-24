@@ -25,7 +25,7 @@ angular.module('myApp', ['angular.models', 'ngMockE2E'])
 
     $httpBackend
       .when('POST', '/persons')
-      .respond([{id:2, name:'Richie'}]);
+      .respond({id:2, name:'Richie'});
 
     $httpBackend
       .when('DELETE', /\/persons\/\d/)

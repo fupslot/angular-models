@@ -484,7 +484,7 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
       // Return a copy of the model's `attributes` object.
       toJSON: function() {
         var self = this;
-        var obj = _.cloneDeep({}, this.attributes);
+        var obj = _.cloneDeep(this.attributes);
 
         if (_.isArray(this.serializeModel) && this.serializeModel.length) {
           _.each(this.serializeModel, function (key) {
