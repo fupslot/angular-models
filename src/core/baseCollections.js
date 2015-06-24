@@ -312,7 +312,7 @@ angular.module('angular.models.core.collection', ['angular.models.exception.vali
           if (!(model = self._prepareModel(model, options))) {
             return reject();
           }
-          model.save(null, options)
+          model.save(options)
             .then(function () {
                 self.add(model, options);
                 model.trigger('created', model, self,  options);

@@ -1,4 +1,4 @@
-angular.module('myApp', ['angular.models'])
+angular.module('myApp', ['angular.models', 'ngMockE2E'])
   .factory('PersonModel', function(BaseModel){
     return BaseModel.extend({
       urlRoot: '/persons'
@@ -16,15 +16,21 @@ angular.module('myApp', ['angular.models'])
     return new PersonCollection();
   })
 
-  .controller('appCtrl', function (Persons) {
+  .controller('appCtrl', function (Persons, $httpBackend, $http) {
     'use strict';
+
+    $httpBackend
+      .when('GET', '/persons')
+      .respond([{id:1, name:'Bon Jovi'}]);
 
     var ctrl = this;
     ctrl.model = {};
 
     ctrl.persons = Persons;
 
-    ctrl.persons.fetch();
+    ctrl.persons.fetch().then(function(persons){
+      console.log(persons);
+    });
 
     ctrl.formSubmit = function formSubmit() {
       ctrl.persons.add(ctrl.model);

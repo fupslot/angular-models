@@ -305,14 +305,14 @@ angular.module('angular.models.core.collection', ['angular.models.exception.vali
         return $q(function (resolve, reject) {
           options = _.extend({}, options, {parse: true});
 
-          options.success = function (response) {
+          options.success = function success (response) {
             self.set(response, options);
             self.trigger('fetched', self);
             resolve(self);
           };
 
           WrapError(self, reject, options);
-          Sync.call(self, 'GET', self, options);
+          Sync('GET', self, options);
         });
       },
 
@@ -324,7 +324,7 @@ angular.module('angular.models.core.collection', ['angular.models.exception.vali
           if (!(model = self._prepareModel(model, options))) {
             return reject();
           }
-          model.save(null, options)
+          model.save(options)
             .then(function () {
                 self.add(model, options);
                 model.trigger('created', model, self,  options);
@@ -720,18 +720,15 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
             return reject(model.validationError);
           }
 
-          function success (response) {
-            console.log(response);
+          options.success = function success (response) {
             if (!model.set(model.parse(response))) {
               return reject(response);
             }
             model.trigger('sync', model);
             resolve(model);
           }
-
-          model.sync(method, model, options)
-            .success(success)
-            .error(reject);
+          WrapError(model, reject, options);
+          model.sync(method, model, options);
         });
       },
 
@@ -1159,17 +1156,9 @@ angular.module('angular.models.core.sync', ['angular.models.helper'])
         params.data = JSON.stringify(options.attrs || model.toJSON(options));
       }
 
-      // Pass along `textStatus` and `errorThrown` from jQuery.
-      // var success = options.success || angular.noop;
-      // var error = options.error || angular.noop;
-      // options.error = function(response) {
-      //   // options.textStatus = textStatus;
-      //   // options.errorThrown = errorThrown;
-      //   if (error) {
-      //     error.call(options.context, response);
-      //   }
-      // };
-      return $http(params);
+      return $http(params)
+        .success(options.success)
+        .error(options.error);
     }
 
     return Sync;

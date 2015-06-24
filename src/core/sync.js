@@ -39,16 +39,6 @@ angular.module('angular.models.core.sync', ['angular.models.helper'])
         params.data = JSON.stringify(options.attrs || model.toJSON(options));
       }
 
-      // Pass along `textStatus` and `errorThrown` from jQuery.
-      // var success = options.success || angular.noop;
-      // var error = options.error || angular.noop;
-      // options.error = function(response) {
-      //   // options.textStatus = textStatus;
-      //   // options.errorThrown = errorThrown;
-      //   if (error) {
-      //     error.call(options.context, response);
-      //   }
-      // };
       return $http(params)
         .success(options.success)
         .error(options.error);

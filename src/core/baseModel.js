@@ -286,18 +286,15 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
             return reject(model.validationError);
           }
 
-          function success (response) {
-            console.log(response);
+          options.success = function success (response) {
             if (!model.set(model.parse(response))) {
               return reject(response);
             }
             model.trigger('sync', model);
             resolve(model);
           }
-
-          model.sync(method, model, options)
-            .success(success)
-            .error(reject);
+          WrapError(model, reject, options);
+          model.sync(method, model, options);
         });
       },
 

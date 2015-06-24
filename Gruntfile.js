@@ -106,6 +106,7 @@ module.exports = function (grunt) {
   });
 
   grunt.registerTask('build', ['clean:dist', 'concat:dist', 'uglify:dist']);
-
   grunt.registerTask('serve', ['wiredep','injector','connect','watch']);
+  grunt.registerTask('test', ['clean:dist', 'concat:dist', 'karma:unit']);
+
 };
