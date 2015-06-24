@@ -7,6 +7,7 @@ angular.module('myApp', ['angular.models'])
 
   .factory('PersonCollection', function(BaseCollection, PersonModel){
     return BaseCollection.extend({
+      url: '/persons',
       model: PersonModel
     });
   })
@@ -22,6 +23,8 @@ angular.module('myApp', ['angular.models'])
     ctrl.model = {};
 
     ctrl.persons = Persons;
+
+    ctrl.persons.fetch();
 
     ctrl.formSubmit = function formSubmit() {
       ctrl.persons.add(ctrl.model);

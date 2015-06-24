@@ -299,8 +299,8 @@ angular.module('angular.models.core.collection', ['angular.models.exception.vali
             resolve(self);
           };
 
-          WrapError(this, reject, options);
-          Sync.call(this, 'GET', this, options);
+          WrapError(self, reject, options);
+          Sync.call(self, 'GET', self, options);
         });
       },
 
@@ -309,7 +309,7 @@ angular.module('angular.models.core.collection', ['angular.models.exception.vali
         var self = this;
         options = options ? _.clone(options) : {};
         return $q(function (resolve, reject) {
-          if (!(model = this._prepareModel(model, options))) {
+          if (!(model = self._prepareModel(model, options))) {
             return reject();
           }
           model.save(null, options)
