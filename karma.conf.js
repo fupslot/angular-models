@@ -14,7 +14,9 @@ module.exports = function(config) {
       'vendors/lodash/lodash.js',
       'vendors/angular/angular.js',
       'vendors/angular-mocks/angular-mocks.js',
-      'src/**/*.js',
+      // 'dist/angular.models.js',
+      'demo/app/**/*.js',
+      'src/**/*.js'
     ],
 
     preprocessors: {
@@ -48,7 +50,7 @@ module.exports = function(config) {
 
 
     // enable / disable watching file and executing tests whenever any file changes
-    autoWatch: false,
+    autoWatch: true,
 
 
     // Start these browsers, currently available:

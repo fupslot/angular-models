@@ -305,14 +305,14 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
 
         return $q(function (resolve, reject) {
           options.success = function (response) {
-              if (!model.set(model.parse(response))) {
-                return false;
-              }
-              model.trigger('fetched', model, response);
-              resolve(model);
+            if (!model.set(model.parse(response))) {
+              return reject(response);
+            }
+            model.trigger('fetched', model, response);
+            resolve(model);
           };
           WrapError(model, reject, options);
-          model.sync('read', model, options);
+          model.sync('GET', model, options);
         });
       },
 

@@ -1,37 +1,25 @@
 describe('Core: BaseCollection', function () {
   'use strict';
-  var httpBackend, baseModel, baseCollection;
+  var $httpBackend, Persons;
 
-  angular.module('myApp', ['angular.models', 'ngMockE2E']);
   beforeEach(module('myApp'));
 
-  beforeEach(inject(function($httpBackend, BaseModel, BaseCollection){
-    httpBackend = $httpBackend;
-    baseModel = BaseModel
-    baseCollection = BaseCollection;
+  beforeEach(inject(function($injector){
+    $httpBackend = $injector.get('$httpBackend');
+    Persons = $injector.get('Persons');
   }));
 
   describe('Initialization', function(){
-
-    it('should be able to extend BaseCollection', function(done){
-      httpBackend
-        .whenGET('/persons')
+    it('should be able to fetch data', function(){
+      $httpBackend
+        .expectGET('/persons')
         .respond([{id:1, name:'Bon Jovi'}]);
 
-      var Person = baseModel.extend({
-        rootUrl: '/persons'
-      });
+      Persons.fetch();
+      $httpBackend.flush();
 
-      var Persons = baseCollection.extend({
-        url: '/persons',
-        model: Person
-      });
-
-      var persons = new Persons();
-      persons.fetch().then(function(persons){
-        expect(persons.length).toBe(1);
-        done();
-      });
+      expect(Persons).toBeDefined();
+      expect(Persons.length).toBe(1);
     });
   });
 });
