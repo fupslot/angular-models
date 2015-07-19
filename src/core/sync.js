@@ -22,7 +22,7 @@ angular.module('angular.models.core.sync', ['angular.models.helper'])
       _.defaults(options || (options = {}));
 
       // Default JSON-request options.
-      var params = {method: method, dataType: 'json', cache: false};
+      var params = _.extend({method: method, dataType: 'json', cache: false}, _.pick(options, 'params'));
 
       params.headers = {};
       params.headers['accept'] = 'application/json, text/plain, */*';
@@ -33,11 +33,16 @@ angular.module('angular.models.core.sync', ['angular.models.helper'])
         throw new Error('A "url" property or function must be specified');
       }
 
+      if (options.params)
+
       // Ensure that we have the appropriate request data.
       if (options.data == null && model && _.include(['POST', 'PUT', 'PATCH'], method)) {
         params.headers['content-type'] = 'application/json';
         params.data = JSON.stringify(options.attrs || model.toJSON(options));
       }
+
+      options.success = options.success || angular.noop;
+      options.error = options.error || angular.noop;
 
       return $http(params)
         .success(options.success)

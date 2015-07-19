@@ -16,7 +16,7 @@ angular.module('myApp', ['angular.models', 'ngMockE2E'])
     return new PersonCollection();
   })
 
-  .controller('appCtrl', function (Persons, $httpBackend, $http) {
+  .controller('appCtrl', function (Persons, $httpBackend, $http, Sync) {
     'use strict';
 
     $httpBackend
@@ -34,15 +34,16 @@ angular.module('myApp', ['angular.models', 'ngMockE2E'])
       .when('PUT', /\/persons\/\d/)
       .respond(200, {id: 1, name:'Bon Jovi2'});
 
+    $httpBackend
+      .when('GET', '/api/get?url=http:%2F%2Fwww.google.com')
+      .respond(200, {});
+
     var ctrl = this;
     ctrl.model = {};
 
     ctrl.persons = Persons;
 
-    ctrl.persons.fetch().then(function(persons){
-      console.log(persons);
-    });
-
+    ctrl.persons.fetch();
     ctrl.persons.create({name:'Richie'});
 
     ctrl.destroyFirst = function() {
@@ -52,5 +53,14 @@ angular.module('myApp', ['angular.models', 'ngMockE2E'])
 
     ctrl.formSubmit = function formSubmit() {
       ctrl.persons.add(ctrl.model);
+    };
+
+    ctrl.getWithParams = function () {
+      Sync('GET', null, {
+        url: '/api/get',
+        params: {
+          'url': 'http://www.google.com'
+        }
+      });
     };
   });
