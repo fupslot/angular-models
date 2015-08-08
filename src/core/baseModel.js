@@ -1,9 +1,11 @@
-angular.module('angular.models.core.model', ['angular.models.exception.validation', 'angular.models.core.extend', 'angular.models.helper', 'angular.models.core.sync', 'angular.models.core.events'])
-  .factory('BaseModel', function ($q, $parse, Events, Extend, Sync, WrapError, ValidationException, _) {
+angular.module('angular.models.core.model', ['angular.models.exception.validation', 'angular.models.helper', 'angular.models.core.sync'])
+  .factory('BaseModelClass', function ($q, $parse, Extend, Sync, WrapError, ValidationException, _) {
     'use strict';
 
+    var proto;
+
     // This abstract class represents common methods of a model
-    function BaseModel (attributes, options) {
+    function BaseModelClass (attributes, options) {
       var attrs = attributes || {};
       options = options || {};
       this.cid = _.uniqueId('c');
@@ -23,32 +25,73 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
       this.initialize.apply(this, arguments);
     }
 
-    _.extend(BaseModel.prototype, Events, {
-      // A hash of attributes whose current and previous value differ.
-      changed: null,
 
-      // The value returned during the last failed validation.
-      validationError: null,
+    proto = BaseModelClass.prototype = Object.create(Sync.prototype);
 
-      // The default name for the JSON `id` attribute is `"id"`. MongoDB and
-      // CouchDB users may want to set this to `"_id"`.
-      idAttribute: 'id',
 
-      // Initialize is an empty function by default. Override it with your own
-      // initialization logic.
-      initialize: _.noop,
+    /**
+     * @property {object} changed
+     * @description A hash of attributes whose current and previous value differ.
+     * @type {object}
+     */
+    Object.defineProperty(proto, 'changed', {
+      value: null,
+      writable: true
+    });
 
-      // Holds a list of models which will be inluded into the model when method 'toJSON' called
-      serializeModel: [],
 
-      // A map associate virtual names with private fiels
-      // they will be available over a "get" method
-      // Ex: {"_lookups": "lookups"}
-      // model.get("lookups");
-      // privateFields: {},
+    /**
+     * @property {object} validationError
+     * @description The value returned during the last failed validation.
+     * @type {object}
+     */
+    Object.defineProperty(proto, 'validationError', {
+      value: null,
+      writable: true
+    });
 
-      // Return a copy of the model's `attributes` object.
-      toJSON: function() {
+
+    /**
+     * @property {string} idAttribute
+     * @description The default name for the JSON `id` attribute is `"id"`. MongoDB and
+     *              CouchDB users may want to set this to `"_id"`.
+     * @type {string}
+     */
+    Object.defineProperty(proto, 'idAttribute', {
+      value: 'id',
+      writable: true
+    });
+
+
+    /**
+     * @function initialize
+     * @description Initialize is an empty function by default. Override it with your own
+     *              initialization logic.
+     */
+    Object.defineProperty(proto, 'initialize', {
+      value: _.noop,
+      writable: true
+    });
+
+
+    /**
+     * @property {array} serializeModel
+     * @description Holds a list of models which will be included into the model when method 'toJSON' called
+     * @type {array}
+     */
+    Object.defineProperty(proto, 'serializeModel', {
+      value: [],
+      writable: true
+    });
+
+
+    /**
+     * @function toJSON
+     * @description  Return a copy of the model's `attributes` object.
+     * @return {JSON}
+     */
+    Object.defineProperty(proto, 'toJSON', {
+      value: function () {
         var self = this;
         var obj = _.cloneDeep(this.attributes);
 
@@ -59,34 +102,57 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
         }
 
         return obj;
-      },
+      }
+    });
 
-      // Proxy `Sync` by default -- but override this if you need
-      // custom syncing semantics for *this* particular model.
-      sync: function() {
-        return Sync.apply(this, arguments);
-      },
 
-      // Get the value of an attribute.
-      get: function(attrPath) {
-        var getter = $parse(attrPath);
+    /**
+     * @function get
+     * @description Get the value of an attribute.
+     * @param  {string} attr A field name
+     */
+    Object.defineProperty(proto, 'get', {
+      value: function (attr) {
+        // NOTE: Improve
+        // if field name has a dot use $parse othewise return a value from attributes
+        var getter = $parse(attr);
         return getter(this.attributes);
-      },
+      }
+    });
 
-      is: function (attr) {
+
+    /**
+     * @function is
+     * @param  {string} attr A field name
+     */
+    Object.defineProperty(proto, 'is', {
+      value: function (attr) {
         return !!this.attributes[attr];
-      },
+      }
+    });
 
-      // Returns `true` if the attribute contains a value that is not null
-      // or undefined.
-      has: function(attr) {
+
+    /**
+     * @function has
+     * @description Returns `true` if the attribute contains a value that is not null
+     *              or undefined.
+     * @param  {string} attr
+     * @return {boolean}
+     */
+    Object.defineProperty(proto, 'has', {
+      value: function (attr) {
         return this.get(attr) != null;
-      },
+      }
+    });
 
-      // Set a hash of model attributes on the object, firing `"change"`. This is
-      // the core primitive operation of a model, updating the data and notifying
-      // anyone who needs to know about the change in state. The heart of the beast.
-      set: function(key, val, options) {
+    /**
+     * @function set
+     * @description Set a hash of model attributes on the object, firing `"change"`. This is
+     *              the core primitive operation of a model, updating the data and notifying
+     *              anyone who needs to know about the change in state. The heart of the beast.
+     */
+    Object.defineProperty(proto, 'set', {
+      value: function (key, val, options) {
         var attr, attrs, unset, changes, silent, changing, prev, current;
         if (key == null) {
           return this;
@@ -175,21 +241,40 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
         this._pending = false;
         this._changing = false;
         return this;
-      },
+      }
+    });
 
-      // Remove an attribute from the model, firing `"change"`. `unset` is a noop
-      // if the attribute doesn't exist.
-      unset: function(attr, options) {
+
+    /**
+     * @function unset
+     * @description Remove an attribute from the model, firing `"change"`. `unset` is a noop
+     *              if the attribute doesn't exist.
+     */
+    Object.defineProperty(proto, 'unset', {
+      value: function (attr, options) {
         return this.set(attr, void 0, _.extend({}, options, {unset: true}));
-      },
+      }
+    });
 
-      // Clear all attributes on the model, firing `"change"`.
-      clear: function(options) {
+
+    /**
+     * @function clear
+     * @description Clear all attributes on the model, firing `"change"`.
+     */
+    Object.defineProperty(proto, 'clear', {
+      value: function (options) {
         var attrs = {};
         for (var key in this.attributes) {
           attrs[key] = void 0;
         }
         return this.set(attrs, _.extend({}, options, {unset: true}));
+      }
+    });
+
+    _.extend(BaseModelClass.prototype, {
+
+      // Clear all attributes on the model, firing `"change"`.
+      clear: function(options) {
       },
 
       // Determine if the model has changed since the last `"change"` event.
@@ -367,7 +452,5 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
       }
     });
 
-    // Making BaseModel extendable over 'extend' method
-    BaseModel.extend = Extend;
-    return BaseModel;
+    return BaseModelClass;
   });
