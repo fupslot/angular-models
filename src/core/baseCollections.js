@@ -1,5 +1,5 @@
-angular.module('angular.models.core.collection', ['angular.models.exception.validation', 'angular.models.core.extend', 'angular.models.helper', 'angular.models.core.sync', 'angular.models.core.events', 'angular.models.core.model'])
-  .factory('BaseCollection', function ($q, $parse, Events, Extend, Sync, WrapError, ValidationException, _, isModel) {
+angular.module('angular.models.core.collection', ['angular.models.exception.validation', 'angular.models.helper', 'angular.models.core.sync', 'angular.models.core.events', 'angular.models.core.model'])
+  .factory('BaseCollection', function ($q, $parse, Events, Sync, WrapError, ValidationException, _, isModel) {
     'use strict';
 
     // Create a new **Collection**, perhaps to contain a specific type of `model`.

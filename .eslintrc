@@ -5,11 +5,26 @@
 	},
 
 	"globals": {
-
+    "angular": false
 	},
 
 	"rules": {
 		"camelcase": [2, {"properties": "always"}],
-		"dot-notation": [2, {"allowPattern": "^[a-z]+((_|-)?[a-z]+)+$"}]
-	}
+
+    "dot-notation": [2, {"allowPattern": "^[a-z]+((_|-)?[a-z]+)+$"}],
+    // disallow trailing commas in object literals
+    "no-comma-dangle": 0,
+    // disallow use of debugger
+    "no-debugger": 0,
+
+    "indent": [2, 2],
+
+    "quotes": [2, "single"],
+
+    "linebreak-style": [2, "unix"],
+
+    "semi": [2, "always"]
+	},
+
+	"extends": "eslint:recommended"
 }

@@ -203,9 +203,9 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
             changes.push(attr);
           }
           if (!_.isEqual(prev[attr], val)) {
-              this.changed[attr] = val;
+            this.changed[attr] = val;
           } else {
-              delete this.changed[attr];
+            delete this.changed[attr];
           }
 
           if (unset === true) {
@@ -222,7 +222,7 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
             this._pending = options;
           }
           for (var i = 0, length = changes.length; i < length; i++) {
-              this.trigger('change:' + changes[i], this, current[changes[i]], options);
+            this.trigger('change:' + changes[i], this, current[changes[i]], options);
           }
         }
 
@@ -271,28 +271,36 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
       }
     });
 
-    _.extend(BaseModelClass.prototype, {
-
-      // Clear all attributes on the model, firing `"change"`.
-      clear: function(options) {
-      },
-
-      // Determine if the model has changed since the last `"change"` event.
-      // If you specify an attribute name, determine if that attribute has changed.
-      hasChanged: function(attr) {
+    /**
+     * @function hasChange
+     * @description Determine if the model has changed since the last `"change"` event.
+     *              If you specify an attribute name, determine if that attribute has changed.
+     * @param  {string} attr
+     * @return {boolean}
+     */
+    Object.defineProperty(proto, 'hasChanged', {
+      value: function (attr) {
         if (attr == null) {
           return !_.isEmpty(this.changed);
         }
         return _.has(this.changed, attr);
-      },
+      }
+    });
 
-      // Return an object containing all the attributes that have changed, or
-      // false if there are no changed attributes. Useful for determining what
-      // parts of a view need to be updated and/or what attributes need to be
-      // persisted to the server. Unset attributes will be set to undefined.
-      // You can also pass an attributes object to diff against the model,
-      // determining if there *would be* a change.
-      changedAttributes: function(diff) {
+
+    /**
+     * @function changedAttributes
+     * @description Return an object containing all the attributes that have changed, or
+     *              false if there are no changed attributes. Useful for determining what
+     *              parts of a view need to be updated and/or what attributes need to be
+     *              persisted to the server. Unset attributes will be set to undefined.
+     *              You can also pass an attributes object to diff against the model,
+     *              determining if there *would be* a change.
+     * @param  {object} diff
+     * @return {object}
+     */
+    Object.defineProperty(proto, 'changedAttributes', {
+      value: function (diff) {
         if (!diff) {
           return this.hasChanged() ? _.clone(this.changed) : false;
         }
@@ -305,27 +313,49 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
           (changed || (changed = {}))[attr] = val;
         }
         return changed;
-      },
+      }
+    });
 
-      // Get the previous value of an attribute, recorded at the time the last
-      // `"change"` event was fired.
-      previous: function(attr) {
+
+    /**
+     * @function previuos
+     * @description Get the previous value of an attribute, recorded at the time the last
+     *              `"change"` event was fired.
+     * @param  {string} attr
+     * @return {mix}
+     */
+    Object.defineProperty(proto, 'previous', {
+      value: function (attr) {
         if (attr == null || !this._previousAttributes) {
           return null;
         }
         return this._previousAttributes[attr];
-      },
+      }
+    });
 
-      // Get all of the attributes of the model at the time of the previous
-      // `"change"` event.
-      previousAttributes: function() {
+
+    /**
+     * @function previousAttributes
+     * @description Get all of the attributes of the model at the time of the previous
+     *              `"change"` event.
+     * @return {object}
+     */
+    Object.defineProperty(proto, 'previousAttributes', {
+      value: function  () {
         return _.clone(this._previousAttributes);
-      },
+      }
+    });
 
-      // Default URL for the model's representation on the server -- if you're
-      // using Backbone's restful methods, override this to change the endpoint
-      // that will be called.
-      url: function() {
+
+    /**
+     * @function url
+     * @description Default URL for the model's representation on the server -- if you're
+     *              using Backbone's restful methods, override this to change the endpoint
+     *              that will be called.
+     * @return {string}
+     */
+    Object.defineProperty(proto, 'url', {
+      value: function () {
         var base = _.result(this, 'urlRoot') || _.result(this.collection, 'url');
 
         if (base == null) {
@@ -336,28 +366,61 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
           return base;
         }
         return base.replace(/([^\/])$/, '$1/') + encodeURIComponent(this.id);
-      },
+      }
+    });
 
-      // Create a new model with identical attributes to this one.
-      clone: function() {
+
+    /**
+     * @function clone
+     * @description Create a new model with identical attributes to this one.
+     */
+    Object.defineProperty(proto, 'clone', {
+      value: function () {
         return new this.constructor(this.attributes);
-      },
+      }
+    });
 
-      // A model is new if it has never been saved to the server, and lacks an id.
-      isNew: function() {
+    /**
+     * @function isNew
+     * @description A model is new if it has never been saved to the server, and lacks an id.
+     * @return {boolean}
+     */
+    Object.defineProperty(proto, 'isNew', {
+      value: function () {
         return !this.has(this.idAttribute);
-      },
+      }
+    });
 
-      // Check if the model is currently in a valid state.
-      isValid: function(options) {
+
+    /**
+     * @function isValid
+     * @description Check if the model is currently in a valid state.
+     * @return {boolean}
+     */
+    Object.defineProperty(proto, 'isValid', {
+      value: function (options) {
         return this._validate({}, _.extend(options || {}, { validate: true }));
-      },
+      }
+    });
 
-      parse: function (response) {
-          return response;
-      },
 
-      save: function(options) {
+    /**
+     * @function parse
+     * @return {object}
+     */
+    Object.defineProperty(proto, 'parse', {
+      value: function (response) {
+        return response;
+      }
+    });
+
+
+    /**
+     * @function save
+     * @return {Promise}
+     */
+    Object.defineProperty(proto, 'save', {
+      value: function (options) {
         options = _.extend({validate: true}, options);
         var model = this;
         var method = model.isNew() ? 'POST' : 'PUT';
@@ -381,10 +444,17 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
           WrapError(model, reject, options);
           model.sync(method, model, options);
         });
-      },
+      }
+    });
 
-      // Fetch the document from the server.
-      fetch: function (options) {
+
+    /**
+     * @function fetch
+     * @description Fetch the document from the server.
+     * @return {Promise}
+     */
+    Object.defineProperty(proto, 'fetch', {
+      value: function (options) {
         var model   = this;
         options = _.extend({}, options);
 
@@ -399,10 +469,17 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
           WrapError(model, reject, options);
           model.sync('GET', model, options);
         });
-      },
+      }
+    });
 
-      // Destroy this model on the server if it was already persisted.
-      destroy: function(options) {
+
+    /**
+     * @function destroy
+     * @description Destroy this model on the server if it was already persisted.
+     * @return {Promise}
+     */
+    Object.defineProperty(proto, 'destroy', {
+      value: function (options) {
         options = options || {};
         var model = this;
 
@@ -426,19 +503,32 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
           WrapError(model, reject, options);
           model.sync('DELETE', model, options);
         });
-      },
+      }
+    });
 
-      // Removes a model from a collection if it was exist
-      remove: function (options) {
+
+    /**
+     * @function remove
+     * @description Removes a model from a collection if it was exist
+     */
+    Object.defineProperty(proto, 'remove', {
+      value: function (options) {
         if (!this.collection) {
           return;
         }
         this.collection.remove(this, options);
-      },
+      }
+    });
 
-      // Run validation against the next complete set of model attributes,
-      // returning `true` if all is well. Otherwise, fire an `"invalid"` event.
-      _validate: function(attrs, options) {
+
+    /**
+     * @function _validate
+     * @description Run validation against the next complete set of model attributes,
+     *              returning `true` if all is well. Otherwise, fire an `"invalid"` event.
+     * @return {boolean}
+     */
+    Object.defineProperty(proto, '_validate', {
+      value: function (attrs, options) {
         if (!options.validate || !this.validate) {
           return true;
         }
