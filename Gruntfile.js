@@ -36,12 +36,12 @@ module.exports = function (grunt) {
         },
         files: {
           '<%= app.demo %>/index.html': [
-              [
-                '<%= app.dist %>/<%= pkg.name%>.js',
-                '<%= app.demo %>/app/**/*.js',
-                '!<%= app.src %>/**/*.spec.js'
-              ]
+            [
+              '<%= app.dist %>/<%= pkg.name%>.js',
+              '<%= app.demo %>/app/**/*.js',
+              '!<%= app.src %>/**/*.spec.js'
             ]
+          ]
         }
       }
     },
@@ -60,9 +60,9 @@ module.exports = function (grunt) {
     concat: {
       dist: {
         options: {
-            separator: '\n',
-            banner: '(function(angular) {\n',
-            footer: '\n})(angular);',
+          separator: '\n',
+          banner: '(function(angular) {\n',
+          footer: '\n})(angular);'
         },
         src: ['src/**/*.js', '!src/**/*.spec.js'],
         dest: '<%= app.dist %>/<%= pkg.name %>.js'
@@ -78,6 +78,14 @@ module.exports = function (grunt) {
         },
         files: {
           '<%= app.dist%>/<%= pkg.name %>.min.js': ['src/**/*.js', '!src/**/*.spec.js']
+        }
+      }
+    },
+    jsdoc : {
+      dist : {
+        src: ['src/**/*.js', '!src/**/*.spec.js'],
+        options: {
+          destination: 'doc'
         }
       }
     },

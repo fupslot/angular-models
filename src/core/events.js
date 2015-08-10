@@ -8,8 +8,7 @@ angular.module('angular.models.core.events', [])
     // functions to an event; `trigger`-ing an event fires all callbacks in
     // succession.
     //
-    //     var object = {};
-    //     _.extend(object, PubSub);
+    //     var object = Object.create(Events.prototype);
     //     object.on('expand', function(){ alert('expanded'); });
     //     object.trigger('expand');
     //
@@ -143,7 +142,7 @@ angular.module('angular.models.core.events', [])
     };
 
     // A difficult-to-believe, but optimized internal dispatch function for
-    // triggering events. Tries to keep the usual cases speedy..
+    // triggering events. Tries to keep the usual cases speedy.
     var triggerEvents = function(events, args) {
       var ev, i = -1, l = events.length, a1 = args[0], a2 = args[1], a3 = args[2];
       switch (args.length) {

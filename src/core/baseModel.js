@@ -4,7 +4,29 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
 
     var proto;
 
-    // This abstract class represents common methods of a model
+    /**
+     * Throw a change event.
+     * @fires BaseModelClass#change
+     *
+     * Throw a sync event.
+     * @fires BaseModelClass#sync
+     *
+     * Throw a fetched event.
+     * @fires BaseModelClass#fetched
+     *
+     * Throw a destroy event.
+     * @fires BaseModelClass#destroy
+     *
+     * Throw a invalid event.
+     * @fires BaseModelClass#invalid
+     */
+
+    /**
+     * @class BaseModelClass
+     * @description This base class represents common methods of a model
+     * @param {Object} attributes A model's attributes. A key-value object.
+     * @param {Object} options    An options.
+     */
     function BaseModelClass (attributes, options) {
       var attrs = attributes || {};
       options = options || {};
@@ -30,7 +52,7 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
 
 
     /**
-     * @property {object} changed
+     * @property {object} BaseModelClass#changed
      * @description A hash of attributes whose current and previous value differ.
      * @type {object}
      */
@@ -41,7 +63,7 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
 
 
     /**
-     * @property {object} validationError
+     * @property {object} BaseModelClass#validationError
      * @description The value returned during the last failed validation.
      * @type {object}
      */
@@ -52,7 +74,7 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
 
 
     /**
-     * @property {string} idAttribute
+     * @property {string} BaseModelClass#idAttribute
      * @description The default name for the JSON `id` attribute is `"id"`. MongoDB and
      *              CouchDB users may want to set this to `"_id"`.
      * @type {string}
@@ -64,7 +86,7 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
 
 
     /**
-     * @function initialize
+     * @function BaseModelClass#initialize
      * @description Initialize is an empty function by default. Override it with your own
      *              initialization logic.
      */
@@ -75,7 +97,7 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
 
 
     /**
-     * @property {array} serializeModel
+     * @property {array} BaseModelClass#serializeModel
      * @description Holds a list of models which will be included into the model when method 'toJSON' called
      * @type {array}
      */
@@ -86,12 +108,12 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
 
 
     /**
-     * @function toJSON
+     * @function BaseModelClass#toJSON
      * @description  Return a copy of the model's `attributes` object.
      * @return {JSON}
      */
     Object.defineProperty(proto, 'toJSON', {
-      value: function () {
+      value: function toJSON () {
         var self = this;
         var obj = _.cloneDeep(this.attributes);
 
@@ -107,12 +129,12 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
 
 
     /**
-     * @function get
+     * @function BaseModelClass#get
      * @description Get the value of an attribute.
      * @param  {string} attr A field name
      */
     Object.defineProperty(proto, 'get', {
-      value: function (attr) {
+      value: function get (attr) {
         // NOTE: Improve
         // if field name has a dot use $parse othewise return a value from attributes
         var getter = $parse(attr);
@@ -122,37 +144,39 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
 
 
     /**
-     * @function is
+     * @function BaseModelClass#is
      * @param  {string} attr A field name
+     * @return {boolean} Returns true if a given field exists in a current instance of BaseModelClass
      */
     Object.defineProperty(proto, 'is', {
-      value: function (attr) {
+      value: function is (attr) {
         return !!this.attributes[attr];
       }
     });
 
 
     /**
-     * @function has
+     * @function BaseModelClass#has
      * @description Returns `true` if the attribute contains a value that is not null
      *              or undefined.
      * @param  {string} attr
      * @return {boolean}
      */
     Object.defineProperty(proto, 'has', {
-      value: function (attr) {
+      value: function has (attr) {
         return this.get(attr) != null;
       }
     });
 
     /**
-     * @function set
+     * @function BaseModelClass#set
      * @description Set a hash of model attributes on the object, firing `"change"`. This is
      *              the core primitive operation of a model, updating the data and notifying
      *              anyone who needs to know about the change in state. The heart of the beast.
+     * @return {BaseModelClass} Return a reference on a current instance of BaseModelClass
      */
     Object.defineProperty(proto, 'set', {
-      value: function (key, val, options) {
+      value: function set (key, val, options) {
         var attr, attrs, unset, changes, silent, changing, prev, current;
         if (key == null) {
           return this;
@@ -246,23 +270,23 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
 
 
     /**
-     * @function unset
+     * @function BaseModelClass#unset
      * @description Remove an attribute from the model, firing `"change"`. `unset` is a noop
      *              if the attribute doesn't exist.
      */
     Object.defineProperty(proto, 'unset', {
-      value: function (attr, options) {
+      value: function unset (attr, options) {
         return this.set(attr, void 0, _.extend({}, options, {unset: true}));
       }
     });
 
 
     /**
-     * @function clear
+     * @function BaseModelClass#clear
      * @description Clear all attributes on the model, firing `"change"`.
      */
     Object.defineProperty(proto, 'clear', {
-      value: function (options) {
+      value: function clear (options) {
         var attrs = {};
         for (var key in this.attributes) {
           attrs[key] = void 0;
@@ -272,14 +296,14 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
     });
 
     /**
-     * @function hasChange
+     * @function BaseModelClass#hasChange
      * @description Determine if the model has changed since the last `"change"` event.
      *              If you specify an attribute name, determine if that attribute has changed.
      * @param  {string} attr
      * @return {boolean}
      */
     Object.defineProperty(proto, 'hasChanged', {
-      value: function (attr) {
+      value: function hasChanged (attr) {
         if (attr == null) {
           return !_.isEmpty(this.changed);
         }
@@ -289,7 +313,7 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
 
 
     /**
-     * @function changedAttributes
+     * @function BaseModelClass#changedAttributes
      * @description Return an object containing all the attributes that have changed, or
      *              false if there are no changed attributes. Useful for determining what
      *              parts of a view need to be updated and/or what attributes need to be
@@ -300,7 +324,7 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
      * @return {object}
      */
     Object.defineProperty(proto, 'changedAttributes', {
-      value: function (diff) {
+      value: function changedAttributes (diff) {
         if (!diff) {
           return this.hasChanged() ? _.clone(this.changed) : false;
         }
@@ -318,14 +342,14 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
 
 
     /**
-     * @function previuos
+     * @function BaseModelClass#previuos
      * @description Get the previous value of an attribute, recorded at the time the last
      *              `"change"` event was fired.
      * @param  {string} attr
      * @return {mix}
      */
     Object.defineProperty(proto, 'previous', {
-      value: function (attr) {
+      value: function previous (attr) {
         if (attr == null || !this._previousAttributes) {
           return null;
         }
@@ -335,27 +359,27 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
 
 
     /**
-     * @function previousAttributes
+     * @function BaseModelClass#previousAttributes
      * @description Get all of the attributes of the model at the time of the previous
-     *              `"change"` event.
+     *              <code>change</code> event.
      * @return {object}
      */
     Object.defineProperty(proto, 'previousAttributes', {
-      value: function  () {
+      value: function previousAttributes () {
         return _.clone(this._previousAttributes);
       }
     });
 
 
     /**
-     * @function url
+     * @function BaseModelClass#url
      * @description Default URL for the model's representation on the server -- if you're
      *              using Backbone's restful methods, override this to change the endpoint
      *              that will be called.
      * @return {string}
      */
     Object.defineProperty(proto, 'url', {
-      value: function () {
+      value: function url () {
         var base = _.result(this, 'urlRoot') || _.result(this.collection, 'url');
 
         if (base == null) {
@@ -371,56 +395,56 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
 
 
     /**
-     * @function clone
-     * @description Create a new model with identical attributes to this one.
+     * @function BaseModelClass#clone
+     * @description Creates a new model with identical attributes to this one.
      */
     Object.defineProperty(proto, 'clone', {
-      value: function () {
+      value: function clone () {
         return new this.constructor(this.attributes);
       }
     });
 
     /**
-     * @function isNew
+     * @function BaseModelClass#isNew
      * @description A model is new if it has never been saved to the server, and lacks an id.
      * @return {boolean}
      */
     Object.defineProperty(proto, 'isNew', {
-      value: function () {
+      value: function isNew () {
         return !this.has(this.idAttribute);
       }
     });
 
 
     /**
-     * @function isValid
+     * @function BaseModelClass#isValid
      * @description Check if the model is currently in a valid state.
      * @return {boolean}
      */
     Object.defineProperty(proto, 'isValid', {
-      value: function (options) {
+      value: function isValid (options) {
         return this._validate({}, _.extend(options || {}, { validate: true }));
       }
     });
 
 
     /**
-     * @function parse
+     * @function BaseModelClass#parse
      * @return {object}
      */
     Object.defineProperty(proto, 'parse', {
-      value: function (response) {
+      value: function parse (response) {
         return response;
       }
     });
 
 
     /**
-     * @function save
+     * @function BaseModelClass#save
      * @return {Promise}
      */
     Object.defineProperty(proto, 'save', {
-      value: function (options) {
+      value: function save (options) {
         options = _.extend({validate: true}, options);
         var model = this;
         var method = model.isNew() ? 'POST' : 'PUT';
@@ -449,12 +473,12 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
 
 
     /**
-     * @function fetch
+     * @function BaseModelClass#fetch
      * @description Fetch the document from the server.
      * @return {Promise}
      */
     Object.defineProperty(proto, 'fetch', {
-      value: function (options) {
+      value: function fetch (options) {
         var model   = this;
         options = _.extend({}, options);
 
@@ -474,12 +498,12 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
 
 
     /**
-     * @function destroy
+     * @function BaseModelClass#destroy
      * @description Destroy this model on the server if it was already persisted.
      * @return {Promise}
      */
     Object.defineProperty(proto, 'destroy', {
-      value: function (options) {
+      value: function destroy (options) {
         options = options || {};
         var model = this;
 
@@ -487,7 +511,6 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
           model.trigger('destroy', model, model.collection, options);
         };
 
-        // var result = Cooladata.Q.defer();
         return $q(function (resolve, reject) {
           options.success = function(resp) {
             if (!model.isNew()) {
@@ -508,11 +531,11 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
 
 
     /**
-     * @function remove
+     * @function BaseModelClass#remove
      * @description Removes a model from a collection if it was exist
      */
     Object.defineProperty(proto, 'remove', {
-      value: function (options) {
+      value: function remove (options) {
         if (!this.collection) {
           return;
         }
@@ -522,13 +545,14 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
 
 
     /**
-     * @function _validate
+     * @function BaseModelClass~_validate
+     * @private
      * @description Run validation against the next complete set of model attributes,
      *              returning `true` if all is well. Otherwise, fire an `"invalid"` event.
      * @return {boolean}
      */
     Object.defineProperty(proto, '_validate', {
-      value: function (attrs, options) {
+      value: function _validate (attrs, options) {
         if (!options.validate || !this.validate) {
           return true;
         }
@@ -541,6 +565,15 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
         return false;
       }
     });
+
+    /**
+     * @event BaseModelClass#change
+     * @description A change event.
+     * @param {BaseModelClass} model A model
+     * @param {mix} changed a changed value
+     * @param {object} options An options
+     */
+
 
     return BaseModelClass;
   });

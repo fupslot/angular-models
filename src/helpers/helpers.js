@@ -7,10 +7,10 @@ angular.module('angular.models.helper', ['angular.models.core.model'])
     }
   ])
 
-  .factory('isModel', function (BaseModel){
+  .factory('isModel', function (BaseModelClass){
     'use strict';
-    return function isModel(attrs) {
-      return attrs instanceof BaseModel;
+    return function isModel(obj) {
+      return obj instanceof BaseModelClass;
     };
   })
 
