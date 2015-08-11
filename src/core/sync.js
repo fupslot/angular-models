@@ -20,6 +20,7 @@ angular.module('angular.models.core.sync', ['angular.models.helper', 'angular.mo
      *              instead of `application/json` with the model in a param named `model`.
      *              Useful when interfacing with server-side languages like **PHP** that make
      *              it difficult to read the body of `PUT` requests.
+     * @memberOf Core
      */
     function Sync () {}
 
@@ -32,6 +33,7 @@ angular.module('angular.models.core.sync', ['angular.models.helper', 'angular.mo
      * @param  {string} method   GET, POST, PUT, DELETE methods
      * @param  {BaseModelClass} model An instance of a BaseModelClass
      * @param  {Object} options An options
+     * @memberOf Core
      * @return {Promise}
      */
     Object.defineProperty(proto, 'sync', {

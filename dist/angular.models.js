@@ -2,7 +2,6 @@
 'use strict';
 
 angular.module('angular.models', [
-  'angular.models.core.extend',
   'angular.models.core.sync',
   'angular.models.core.model',
   'angular.models.core.collection',
@@ -10,14 +9,21 @@ angular.module('angular.models', [
   'angular.models.exception.validation'
 ]);
 
-angular.module('angular.models.core.collection', ['angular.models.exception.validation', 'angular.models.core.extend', 'angular.models.helper', 'angular.models.core.sync', 'angular.models.core.events', 'angular.models.core.model'])
-  .factory('BaseCollection', function ($q, $parse, Events, Extend, Sync, WrapError, ValidationException, _, isModel) {
+angular.module('angular.models.core.collection', ['angular.models.exception.validation', 'angular.models.helper', 'angular.models.core.sync', 'angular.models.core.model'])
+  .factory('BaseCollectionClass', function ($q, $parse, Sync, WrapError, ValidationException, _, isModel) {
     'use strict';
 
-    // Create a new **Collection**, perhaps to contain a specific type of `model`.
-    // If a `comparator` is specified, the Collection will maintain
-    // its models in sort order, as they're added and removed.
-    function BaseCollection (models, options) {
+    var proto;
+
+    /**
+     * @class BaseCollectionClass
+     * @description Create a new **Collection**, perhaps to contain a specific type of `model`.
+     *              If a `comparator` is specified, the Collection will maintain
+     *              its models in sort order, as they're added and removed.
+     * @param {BaseModelClass[]} models An array of BaseModelClass instances.
+     * @param {Object} options An options
+     */
+    function BaseCollectionClass (models, options) {
       options = options || {};
       if (options.model) {
         this.model = options.model;
@@ -35,58 +41,99 @@ angular.module('angular.models.core.collection', ['angular.models.exception.vali
     var setOptions = {add: true, remove: true, merge: true};
     var addOptions = {add: true, remove: false};
 
-    _.extend(BaseCollection.prototype, Events, {
-      // The default model is null.
-      // This should be overridden in all cases.
-      model: null,
+    proto = BaseCollectionClass.prototype = Object.create(Sync.prototype);
 
-      // Initialize is an empty function by default. Override it with your own
-      // initialization logic.
-      initialize: _.noop,
+    /**
+     * @property {BaseModelClass} BaseCollectionClass#model
+     * @description The default model is null.
+     *              This should be overridden in all cases.
+     * @type {BaseModelClass}
+     */
+    Object.defineProperty(proto, 'model', {
+      value: null,
+      writable: true
+    });
 
-      // The JSON representation of a Collection is an array of the
-      // models' attributes.
-      toJSON: function(options) {
-          return this.map(function(model){ return model.toJSON(options); });
-      },
 
-      // Add a model, or list of models to the set.
-      add: function(models, options) {
-          return this.set(models, _.extend({merge: false}, options, addOptions));
-      },
+    /**
+     * @function BaseCollectionClass#initialize
+     * @description Initialize is an empty function by default. Override it with your own
+     *              initialization logic.
+     */
+    Object.defineProperty(proto, 'initialize', {
+      value: _.noop
+    });
 
-      // Remove a model, or a list of models from the set.
-      remove: function(models, options) {
-          var singular = !_.isArray(models);
-          models = singular ? [models] : _.clone(models); // ? method 'clone' doesn't make deep clone copy
-          options = options || {};
-          for (var i = 0, length = models.length; i < length; i++) {
-            var model = models[i] = this.get(models[i]);
-            if (!model) {
-              continue;
-            }
-            var id = this.modelId(model.attributes);
-            if (id != null) {
-              delete this._byId[id];
-            }
-            delete this._byId[model.cid];
-            var index = this.indexOf(model);
-            this.models.splice(index, 1);
-            this.length--;
-            if (!options.silent) {
-                options.index = index;
-                model.trigger('remove', model, this, options);
-            }
-            this._removeReference(model, options);
+
+    /**
+     * @function BaseCollectionClass#toJSON
+     * @description The JSON representation of a Collection is an array of the
+     *              models' attributes.
+     * @param  {object} options An options object
+     * @return {JSON}
+     */
+    Object.defineProperty(proto, 'toJSON', {
+      value: function (options) {
+        return this.map(function(model){ return model.toJSON(options); });
+      }
+    });
+
+    /**
+     * @function BaseCollectionClass#add
+     * @description Add a model, or list of models to the set.
+     * @return {BaseModelClass}
+     */
+    Object.defineProperty(proto, 'add', {
+      value: function (models, options) {
+        return this.set(models, _.extend({merge: false}, options, addOptions));
+      }
+    });
+
+
+    /**
+     * @function BaseCollectionClass#remove
+     * @description Remove a model, or a list of models from the set.
+     * @return {BaseModelClass}
+     */
+    Object.defineProperty(proto, 'remove', {
+      value: function (models, options) {
+        var singular = !_.isArray(models);
+        models = singular ? [models] : _.clone(models); // ? method 'clone' doesn't make deep clone copy
+        options = options || {};
+        for (var i = 0, length = models.length; i < length; i++) {
+          var model = models[i] = this.get(models[i]);
+          if (!model) {
+            continue;
           }
-          return singular ? models[0] : models;
-      },
+          var id = this.modelId(model.attributes);
+          if (id != null) {
+            delete this._byId[id];
+          }
+          delete this._byId[model.cid];
+          var index = this.indexOf(model);
+          this.models.splice(index, 1);
+          this.length--;
+          if (!options.silent) {
+            options.index = index;
+            model.trigger('remove', model, this, options);
+          }
+          this._removeReference(model, options);
+        }
+        return singular ? models[0] : models;
+      }
+    });
 
-      // Update a collection by `set`-ing a new list of models, adding new ones,
-      // removing models that are no longer present, and merging models that
-      // already exist in the collection, as necessary. Similar to **Model#set**,
-      // the core operation for updating the data contained by the collection.
-      set: function(models, options) {
+
+    /**
+     * @function BaseCollectionClass#set
+     * @description Update a collection by `set`-ing a new list of models, adding new ones,
+     *              removing models that are no longer present, and merging models that
+     *              already exist in the collection, as necessary. Similar to **Model#set**,
+     *              the core operation for updating the data contained by the collection.
+     * @return {BaseModelClass}
+     */
+    Object.defineProperty(proto, 'set', {
+      value: function (models, options) {
         options = _.defaults({}, options, setOptions);
         if (options.parse) {
           models = this.parse(models, options);
@@ -208,13 +255,20 @@ angular.module('angular.models.core.collection', ['angular.models.exception.vali
 
         // Return the added (or merged) model (or models).
         return singular ? models[0] : models;
-      },
+      }
+    });
 
-      // When you have more items than you want to add or remove individually,
-      // you can reset the entire set with a new list of models, without firing
-      // any granular `add` or `remove` events. Fires `reset` when finished.
-      // Useful for bulk operations and optimizations.
-      reset: function(models, options) {
+
+    /**
+     * @function BaseCollectionClass#reset
+     * @description When you have more items than you want to add or remove individually,
+     *              you can reset the entire set with a new list of models, without firing
+     *              any granular `add` or `remove` events. Fires `reset` when finished.
+     *              Useful for bulk operations and optimizations.
+     * @return {BaseModelClass}
+     */
+    Object.defineProperty(proto, 'reset', {
+      value: function (models, options) {
         options = options ? _.clone(options) : {};
         for (var i = 0, length = this.models.length; i < length; i++) {
           this._removeReference(this.models[i], options);
@@ -226,81 +280,136 @@ angular.module('angular.models.core.collection', ['angular.models.exception.vali
           this.trigger('reset', this, options);
         }
         return models;
-      },
+      }
+    });
 
-      // Get a model from the set by id.
-      get: function(obj) {
+
+    /**
+     * @function BaseCollectionClass#get
+     * @description Get a model from the set by id.
+     * @return {BaseModelClass}
+     */
+    Object.defineProperty(proto, 'get', {
+      value: function (obj) {
         if (obj == null) {
           return void 0;
         }
         var id = this.modelId(isModel(obj) ? obj.attributes : obj);
         return this._byId[obj] || this._byId[id] || this._byId[obj.cid];
-      },
+      }
+    });
 
-      getWithPromise: function (obj) {
-        var result = Q.defer();
-        var doc = this.get(obj);
-        if (doc) result.resolve(doc);
-        else result.reject(new Error('Model not found'));
-        return result.promise;
-      },
 
-      // Get the model at the given index.
-      at: function(index) {
+    /**
+     * @function BaseCollectionClass#at
+     * @description Get the model at the given index.
+     * @return {BaseModelClass}
+     */
+    Object.defineProperty(proto, 'at', {
+      value: function (index) {
         if (index < 0) index += this.length;
         return this.models[index];
-      },
+      }
+    });
 
-      // Return models with matching attributes. Useful for simple cases of
-      // `filter`.
-      where: function(attrs, first) {
+
+    /**
+     * @function BaseCollectionClass#where
+     * @description Return models with matching attributes. Useful for simple cases of
+     *              `filter`.
+     * @return {BaseModelClass}
+     */
+    Object.defineProperty(proto, 'where', {
+      value: function (attrs, first) {
         var matches = _.matches(attrs);
         return this[first ? 'find' : 'filter'](function(model) {
           return matches(model.attributes);
         });
-      },
+      }
+    });
 
-      // Return the first model with matching attributes. Useful for simple cases
-      // of `find`.
-      findWhere: function(attrs) {
+
+    /**
+     * @function BaseCollectionClass#findWhere
+     * @description Return the first model with matching attributes. Useful for simple cases
+     *              of `find`.
+     * @return {BaseModelClass}
+     */
+    Object.defineProperty(proto, 'findWhere', {
+      value: function (attrs) {
         return this.where(attrs, true);
-      },
+      }
+    });
 
-      // Force the collection to re-sort itself. You don't need to call this under
-      // normal circumstances, as the set will maintain sort order as each item
-      // is added.
-      sort: function(options) {
+
+    /**
+     * @function BaseCollectionClass#sort
+     * @description Force the collection to re-sort itself. You don't need to call this under
+     *              normal circumstances, as the set will maintain sort order as each item
+     *              is added.
+     * @return {BaseCollectionClass}
+     */
+    Object.defineProperty(proto, 'sort', {
+      value: function (options) {
         if (!this.comparator) throw new Error('Cannot sort a set without a comparator');
         options || (options = {});
 
         // Run sort based on type of `comparator`.
         if (_.isString(this.comparator) || this.comparator.length === 1) {
-            this.models = this.sortBy(this.comparator, this);
+          this.models = this.sortBy(this.comparator, this);
         } else {
-            this.models.sort(_.bind(this.comparator, this));
+          this.models.sort(_.bind(this.comparator, this));
         }
 
         if (!options.silent) this.trigger('sort', this, options);
         return this;
-      },
+      }
+    });
 
-      // Pluck an attribute from each model in the collection.
-      pluck: function(attr) {
+
+    /**
+     * @function BaseCollectionClass#pluck
+     * @description Pluck an attribute from each model in the collection.
+     * @return {type}
+     */
+    Object.defineProperty(proto, 'pluck', {
+      value: function (attr) {
         return _.invoke(this.models, 'get', attr);
-      },
+      }
+    });
 
-      // **parse** converts a response into a list of models to be added to the
-      // collection. The default implementation is just to pass it through.
-      parse: function(resp) {
-        return resp;
-      },
 
-      toArray: function () {
+    /**
+     * @function BaseCollectionClass#parse
+     * @description **parse** converts a response into a list of models to be added to the
+     *              collection. The default implementation is just to pass it through.
+     * @return {object}
+     */
+    Object.defineProperty(proto, 'parse', {
+      value: function (response) {
+        return response;
+      }
+    });
+
+
+    /**
+     * @function BaseCollectionClass#toArray
+     * @return {array}
+     */
+    Object.defineProperty(proto, 'toArray', {
+      value: function () {
         return _.invoke(this.models, 'toJSON');
-      },
+      }
+    });
 
-      // Fetch data sources from the server
-      fetch: function (options) {
+
+    /**
+     * @function BaseCollectionClass#fetch
+     * @description Fetch data sources from the server
+     * @return {type}
+     */
+    Object.defineProperty(proto, 'fetch', {
+      value: function (options) {
         var self = this;
         return $q(function (resolve, reject) {
           options = _.extend({}, options, {parse: true});
@@ -314,10 +423,17 @@ angular.module('angular.models.core.collection', ['angular.models.exception.vali
           WrapError(self, reject, options);
           Sync('GET', self, options);
         });
-      },
+      }
+    });
 
-      // Creates a new instance of a model in this collection.
-      create: function (model, options) {
+
+    /**
+     * @function BaseCollectionClass#create
+     * @description Creates a new instance of a model in this collection.
+     * @return {Promise}
+     */
+    Object.defineProperty(proto, 'create', {
+      value: function (model, options) {
         var self = this;
         options = options ? _.clone(options) : {};
         return $q(function (resolve, reject) {
@@ -326,29 +442,51 @@ angular.module('angular.models.core.collection', ['angular.models.exception.vali
           }
           model.save(options)
             .then(function () {
-                self.add(model, options);
-                model.trigger('created', model, self,  options);
-                resolve(model);
+              self.add(model, options);
+              model.trigger('created', model, self,  options);
+              resolve(model);
             }, reject);
         });
-      },
+      }
+    });
 
-      // Define how to uniquely identify models in the collection.
-      modelId: function (attrs) {
+
+    /**
+     * @function BaseCollectionClass#modelId
+     * @description Define how to uniquely identify models in the collection.
+     * @return {type}
+     */
+    Object.defineProperty(proto, 'modelId', {
+      value: function (attrs) {
         return attrs[this.model.prototype.idAttribute || 'id'];
-      },
+      }
+    });
 
-      // Private method to reset all internal state. Called when the collection
-      // is first initialized or reset.
-      _reset: function() {
+
+    /**
+     * @function BaseCollectionClass~_reset
+     * @private
+     * @description Private method to reset all internal state. Called when the collection
+     *              is first initialized or reset.
+     */
+    Object.defineProperty(proto, '_reset', {
+      value: function () {
         this.length = 0;
         this.models = [];
         this._byId  = {};
-      },
+      }
+    });
 
-      // Prepare a hash of attributes (or other model) to be added to this
-      // collection.
-      _prepareModel: function(attrs, options) {
+
+    /**
+     * @function BaseCollectionClass~_prepareModel
+     * @private
+     * @description Prepare a hash of attributes (or other model) to be added to this
+     *              collection.
+     * @return {BaseModelClass}
+     */
+    Object.defineProperty(proto, '_prepareModel', {
+      value: function (attrs, options) {
         if (isModel(attrs)) {
           if (!attrs.collection) {
             attrs.collection = this;
@@ -363,31 +501,53 @@ angular.module('angular.models.core.collection', ['angular.models.exception.vali
         }
         this.trigger('invalid', this, model.validationError, options);
         return false;
-      },
+      }
+    });
 
-      // Internal method to create a model's ties to a collection.
-      _addReference: function(model) {
+
+    /**
+     * @function BaseCollectionClass~_addReference
+     * @private
+     * @description Internal method to create a model's ties to a collection.
+     */
+    Object.defineProperty(proto, '_addReference', {
+      value: function (model) {
         this._byId[model.cid] = model;
         var id = this.modelId(model.attributes);
         if (id != null) {
           this._byId[id] = model;
         }
         model.on('all', this._onModelEvent, this);
-      },
+      }
+    });
 
-      // Internal method to sever a model's ties to a collection.
-      _removeReference: function(model) {
+
+    /**
+     * @function BaseCollectionClass~_removeReference
+     * @private
+     * @description Internal method to sever a model's ties to a collection.
+     * @return {type}
+     */
+    Object.defineProperty(proto, '_removeReference', {
+      value: function (model) {
         if (this === model.collection) {
           delete model.collection;
         }
         model.off('all', this._onModelEvent, this);
-      },
+      }
+    });
 
-      // Internal method called every time a model in the set fires an event.
-      // Sets need to update their indexes when models change ids. All other
-      // events simply proxy through. "add" and "remove" events that originate
-      // in other collections are ignored.
-      _onModelEvent: function(event, model, collection, options) {
+
+    /**
+     * @function BaseCollectionClass~_onModelEvent
+     * @private
+     * @description Internal method called every time a model in the set fires an event.
+     *              Sets need to update their indexes when models change ids. All other
+     *              events simply proxy through. "add" and "remove" events that originate
+     *              in other collections are ignored.
+     */
+    Object.defineProperty(proto, '_onModelEvent', {
+      value: function (event, model, collection, options) {
         if ((event === 'add' || event === 'remove') && collection !== this) {
           return;
         }
@@ -410,34 +570,60 @@ angular.module('angular.models.core.collection', ['angular.models.exception.vali
       }
     });
 
-    // Underscore methods that we want to implement on the Collection.
+
+    // Lodash methods that we want to implement on the Collection.
     var methods = ['each', 'map', 'find', 'filter', 'invoke',
         'reject', 'every', 'all', 'some', 'any', 'contains',
         'size', 'first', 'last', 'isEmpty', 'indexOf', 'indexBy'];
 
-    // Mix in each Underscore method as a proxy to `Collection#models`.
+    // Mix in each Lodash method as a proxy to (Collection#models).
     _.each(methods, function(method) {
       if (!_[method]) {
         return;
       }
-      BaseCollection.prototype[method] = function() {
-        var args = [].slice.call(arguments);
-        args.unshift(this.models);
-        return _[method].apply(_, args);
-      };
+
+      Object.defineProperty(proto, method, {
+        value: function () {
+          var args = [].slice.call(arguments);
+          args.unshift(this.models);
+          return _[method].apply(_, args);
+        }
+      });
     });
 
-    // Making BaseCollection extendable over 'extend' method
-    BaseCollection.extend = Extend;
-    return BaseCollection;
+    return BaseCollectionClass;
   });
 
-angular.module('angular.models.core.model', ['angular.models.exception.validation', 'angular.models.core.extend', 'angular.models.helper', 'angular.models.core.sync', 'angular.models.core.events'])
-  .factory('BaseModel', function ($q, $parse, Events, Extend, Sync, WrapError, ValidationException, _) {
+angular.module('angular.models.core.model', ['angular.models.exception.validation', 'angular.models.helper', 'angular.models.core.sync'])
+  .factory('BaseModelClass', function ($q, $parse, Extend, Sync, WrapError, ValidationException, _) {
     'use strict';
 
-    // This abstract class represents common methods of a model
-    function BaseModel (attributes, options) {
+    var proto;
+
+    /**
+     * Throw a change event.
+     * @fires BaseModelClass#change
+     *
+     * Throw a sync event.
+     * @fires BaseModelClass#sync
+     *
+     * Throw a fetched event.
+     * @fires BaseModelClass#fetched
+     *
+     * Throw a destroy event.
+     * @fires BaseModelClass#destroy
+     *
+     * Throw a invalid event.
+     * @fires BaseModelClass#invalid
+     */
+
+    /**
+     * @class BaseModelClass
+     * @description This base class represents common methods of a model
+     * @param {Object} attributes A model's attributes. A key-value object.
+     * @param {Object} options    An options.
+     */
+    function BaseModelClass (attributes, options) {
       var attrs = attributes || {};
       options = options || {};
       this.cid = _.uniqueId('c');
@@ -457,32 +643,73 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
       this.initialize.apply(this, arguments);
     }
 
-    _.extend(BaseModel.prototype, Events, {
-      // A hash of attributes whose current and previous value differ.
-      changed: null,
 
-      // The value returned during the last failed validation.
-      validationError: null,
+    proto = BaseModelClass.prototype = Object.create(Sync.prototype);
 
-      // The default name for the JSON `id` attribute is `"id"`. MongoDB and
-      // CouchDB users may want to set this to `"_id"`.
-      idAttribute: 'id',
 
-      // Initialize is an empty function by default. Override it with your own
-      // initialization logic.
-      initialize: _.noop,
+    /**
+     * @property {object} BaseModelClass#changed
+     * @description A hash of attributes whose current and previous value differ.
+     * @type {object}
+     */
+    Object.defineProperty(proto, 'changed', {
+      value: null,
+      writable: true
+    });
 
-      // Holds a list of models which will be inluded into the model when method 'toJSON' called
-      serializeModel: [],
 
-      // A map associate virtual names with private fiels
-      // they will be available over a "get" method
-      // Ex: {"_lookups": "lookups"}
-      // model.get("lookups");
-      // privateFields: {},
+    /**
+     * @property {object} BaseModelClass#validationError
+     * @description The value returned during the last failed validation.
+     * @type {object}
+     */
+    Object.defineProperty(proto, 'validationError', {
+      value: null,
+      writable: true
+    });
 
-      // Return a copy of the model's `attributes` object.
-      toJSON: function() {
+
+    /**
+     * @property {string} BaseModelClass#idAttribute
+     * @description The default name for the JSON `id` attribute is `"id"`. MongoDB and
+     *              CouchDB users may want to set this to `"_id"`.
+     * @type {string}
+     */
+    Object.defineProperty(proto, 'idAttribute', {
+      value: 'id',
+      writable: true
+    });
+
+
+    /**
+     * @function BaseModelClass#initialize
+     * @description Initialize is an empty function by default. Override it with your own
+     *              initialization logic.
+     */
+    Object.defineProperty(proto, 'initialize', {
+      value: _.noop,
+      writable: true
+    });
+
+
+    /**
+     * @property {array} BaseModelClass#serializeModel
+     * @description Holds a list of models which will be included into the model when method 'toJSON' called
+     * @type {array}
+     */
+    Object.defineProperty(proto, 'serializeModel', {
+      value: [],
+      writable: true
+    });
+
+
+    /**
+     * @function BaseModelClass#toJSON
+     * @description  Return a copy of the model's `attributes` object.
+     * @return {JSON}
+     */
+    Object.defineProperty(proto, 'toJSON', {
+      value: function toJSON () {
         var self = this;
         var obj = _.cloneDeep(this.attributes);
 
@@ -493,34 +720,59 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
         }
 
         return obj;
-      },
+      }
+    });
 
-      // Proxy `Sync` by default -- but override this if you need
-      // custom syncing semantics for *this* particular model.
-      sync: function() {
-        return Sync.apply(this, arguments);
-      },
 
-      // Get the value of an attribute.
-      get: function(attrPath) {
-        var getter = $parse(attrPath);
+    /**
+     * @function BaseModelClass#get
+     * @description Get the value of an attribute.
+     * @param  {string} attr A field name
+     */
+    Object.defineProperty(proto, 'get', {
+      value: function get (attr) {
+        // NOTE: Improve
+        // if field name has a dot use $parse othewise return a value from attributes
+        var getter = $parse(attr);
         return getter(this.attributes);
-      },
+      }
+    });
 
-      is: function (attr) {
+
+    /**
+     * @function BaseModelClass#is
+     * @param  {string} attr A field name
+     * @return {boolean} Returns true if a given field exists in a current instance of BaseModelClass
+     */
+    Object.defineProperty(proto, 'is', {
+      value: function is (attr) {
         return !!this.attributes[attr];
-      },
+      }
+    });
 
-      // Returns `true` if the attribute contains a value that is not null
-      // or undefined.
-      has: function(attr) {
+
+    /**
+     * @function BaseModelClass#has
+     * @description Returns `true` if the attribute contains a value that is not null
+     *              or undefined.
+     * @param  {string} attr
+     * @return {boolean}
+     */
+    Object.defineProperty(proto, 'has', {
+      value: function has (attr) {
         return this.get(attr) != null;
-      },
+      }
+    });
 
-      // Set a hash of model attributes on the object, firing `"change"`. This is
-      // the core primitive operation of a model, updating the data and notifying
-      // anyone who needs to know about the change in state. The heart of the beast.
-      set: function(key, val, options) {
+    /**
+     * @function BaseModelClass#set
+     * @description Set a hash of model attributes on the object, firing `"change"`. This is
+     *              the core primitive operation of a model, updating the data and notifying
+     *              anyone who needs to know about the change in state. The heart of the beast.
+     * @return {BaseModelClass} Return a reference on a current instance of BaseModelClass
+     */
+    Object.defineProperty(proto, 'set', {
+      value: function set (key, val, options) {
         var attr, attrs, unset, changes, silent, changing, prev, current;
         if (key == null) {
           return this;
@@ -571,9 +823,9 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
             changes.push(attr);
           }
           if (!_.isEqual(prev[attr], val)) {
-              this.changed[attr] = val;
+            this.changed[attr] = val;
           } else {
-              delete this.changed[attr];
+            delete this.changed[attr];
           }
 
           if (unset === true) {
@@ -590,7 +842,7 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
             this._pending = options;
           }
           for (var i = 0, length = changes.length; i < length; i++) {
-              this.trigger('change:' + changes[i], this, current[changes[i]], options);
+            this.trigger('change:' + changes[i], this, current[changes[i]], options);
           }
         }
 
@@ -609,39 +861,66 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
         this._pending = false;
         this._changing = false;
         return this;
-      },
+      }
+    });
 
-      // Remove an attribute from the model, firing `"change"`. `unset` is a noop
-      // if the attribute doesn't exist.
-      unset: function(attr, options) {
+
+    /**
+     * @function BaseModelClass#unset
+     * @description Remove an attribute from the model, firing `"change"`. `unset` is a noop
+     *              if the attribute doesn't exist.
+     */
+    Object.defineProperty(proto, 'unset', {
+      value: function unset (attr, options) {
         return this.set(attr, void 0, _.extend({}, options, {unset: true}));
-      },
+      }
+    });
 
-      // Clear all attributes on the model, firing `"change"`.
-      clear: function(options) {
+
+    /**
+     * @function BaseModelClass#clear
+     * @description Clear all attributes on the model, firing `"change"`.
+     */
+    Object.defineProperty(proto, 'clear', {
+      value: function clear (options) {
         var attrs = {};
         for (var key in this.attributes) {
           attrs[key] = void 0;
         }
         return this.set(attrs, _.extend({}, options, {unset: true}));
-      },
+      }
+    });
 
-      // Determine if the model has changed since the last `"change"` event.
-      // If you specify an attribute name, determine if that attribute has changed.
-      hasChanged: function(attr) {
+    /**
+     * @function BaseModelClass#hasChange
+     * @description Determine if the model has changed since the last `"change"` event.
+     *              If you specify an attribute name, determine if that attribute has changed.
+     * @param  {string} attr
+     * @return {boolean}
+     */
+    Object.defineProperty(proto, 'hasChanged', {
+      value: function hasChanged (attr) {
         if (attr == null) {
           return !_.isEmpty(this.changed);
         }
         return _.has(this.changed, attr);
-      },
+      }
+    });
 
-      // Return an object containing all the attributes that have changed, or
-      // false if there are no changed attributes. Useful for determining what
-      // parts of a view need to be updated and/or what attributes need to be
-      // persisted to the server. Unset attributes will be set to undefined.
-      // You can also pass an attributes object to diff against the model,
-      // determining if there *would be* a change.
-      changedAttributes: function(diff) {
+
+    /**
+     * @function BaseModelClass#changedAttributes
+     * @description Return an object containing all the attributes that have changed, or
+     *              false if there are no changed attributes. Useful for determining what
+     *              parts of a view need to be updated and/or what attributes need to be
+     *              persisted to the server. Unset attributes will be set to undefined.
+     *              You can also pass an attributes object to diff against the model,
+     *              determining if there *would be* a change.
+     * @param  {object} diff
+     * @return {object}
+     */
+    Object.defineProperty(proto, 'changedAttributes', {
+      value: function changedAttributes (diff) {
         if (!diff) {
           return this.hasChanged() ? _.clone(this.changed) : false;
         }
@@ -654,27 +933,49 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
           (changed || (changed = {}))[attr] = val;
         }
         return changed;
-      },
+      }
+    });
 
-      // Get the previous value of an attribute, recorded at the time the last
-      // `"change"` event was fired.
-      previous: function(attr) {
+
+    /**
+     * @function BaseModelClass#previuos
+     * @description Get the previous value of an attribute, recorded at the time the last
+     *              `"change"` event was fired.
+     * @param  {string} attr
+     * @return {mix}
+     */
+    Object.defineProperty(proto, 'previous', {
+      value: function previous (attr) {
         if (attr == null || !this._previousAttributes) {
           return null;
         }
         return this._previousAttributes[attr];
-      },
+      }
+    });
 
-      // Get all of the attributes of the model at the time of the previous
-      // `"change"` event.
-      previousAttributes: function() {
+
+    /**
+     * @function BaseModelClass#previousAttributes
+     * @description Get all of the attributes of the model at the time of the previous
+     *              <code>change</code> event.
+     * @return {object}
+     */
+    Object.defineProperty(proto, 'previousAttributes', {
+      value: function previousAttributes () {
         return _.clone(this._previousAttributes);
-      },
+      }
+    });
 
-      // Default URL for the model's representation on the server -- if you're
-      // using Backbone's restful methods, override this to change the endpoint
-      // that will be called.
-      url: function() {
+
+    /**
+     * @function BaseModelClass#url
+     * @description Default URL for the model's representation on the server -- if you're
+     *              using Backbone's restful methods, override this to change the endpoint
+     *              that will be called.
+     * @return {string}
+     */
+    Object.defineProperty(proto, 'url', {
+      value: function url () {
         var base = _.result(this, 'urlRoot') || _.result(this.collection, 'url');
 
         if (base == null) {
@@ -685,28 +986,61 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
           return base;
         }
         return base.replace(/([^\/])$/, '$1/') + encodeURIComponent(this.id);
-      },
+      }
+    });
 
-      // Create a new model with identical attributes to this one.
-      clone: function() {
+
+    /**
+     * @function BaseModelClass#clone
+     * @description Creates a new model with identical attributes to this one.
+     */
+    Object.defineProperty(proto, 'clone', {
+      value: function clone () {
         return new this.constructor(this.attributes);
-      },
+      }
+    });
 
-      // A model is new if it has never been saved to the server, and lacks an id.
-      isNew: function() {
+    /**
+     * @function BaseModelClass#isNew
+     * @description A model is new if it has never been saved to the server, and lacks an id.
+     * @return {boolean}
+     */
+    Object.defineProperty(proto, 'isNew', {
+      value: function isNew () {
         return !this.has(this.idAttribute);
-      },
+      }
+    });
 
-      // Check if the model is currently in a valid state.
-      isValid: function(options) {
+
+    /**
+     * @function BaseModelClass#isValid
+     * @description Check if the model is currently in a valid state.
+     * @return {boolean}
+     */
+    Object.defineProperty(proto, 'isValid', {
+      value: function isValid (options) {
         return this._validate({}, _.extend(options || {}, { validate: true }));
-      },
+      }
+    });
 
-      parse: function (response) {
-          return response;
-      },
 
-      save: function(options) {
+    /**
+     * @function BaseModelClass#parse
+     * @return {object}
+     */
+    Object.defineProperty(proto, 'parse', {
+      value: function parse (response) {
+        return response;
+      }
+    });
+
+
+    /**
+     * @function BaseModelClass#save
+     * @return {Promise}
+     */
+    Object.defineProperty(proto, 'save', {
+      value: function save (options) {
         options = _.extend({validate: true}, options);
         var model = this;
         var method = model.isNew() ? 'POST' : 'PUT';
@@ -730,10 +1064,17 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
           WrapError(model, reject, options);
           model.sync(method, model, options);
         });
-      },
+      }
+    });
 
-      // Fetch the document from the server.
-      fetch: function (options) {
+
+    /**
+     * @function BaseModelClass#fetch
+     * @description Fetch the document from the server.
+     * @return {Promise}
+     */
+    Object.defineProperty(proto, 'fetch', {
+      value: function fetch (options) {
         var model   = this;
         options = _.extend({}, options);
 
@@ -748,10 +1089,17 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
           WrapError(model, reject, options);
           model.sync('GET', model, options);
         });
-      },
+      }
+    });
 
-      // Destroy this model on the server if it was already persisted.
-      destroy: function(options) {
+
+    /**
+     * @function BaseModelClass#destroy
+     * @description Destroy this model on the server if it was already persisted.
+     * @return {Promise}
+     */
+    Object.defineProperty(proto, 'destroy', {
+      value: function destroy (options) {
         options = options || {};
         var model = this;
 
@@ -759,7 +1107,6 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
           model.trigger('destroy', model, model.collection, options);
         };
 
-        // var result = Cooladata.Q.defer();
         return $q(function (resolve, reject) {
           options.success = function(resp) {
             if (!model.isNew()) {
@@ -775,19 +1122,33 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
           WrapError(model, reject, options);
           model.sync('DELETE', model, options);
         });
-      },
+      }
+    });
 
-      // Removes a model from a collection if it was exist
-      remove: function (options) {
+
+    /**
+     * @function BaseModelClass#remove
+     * @description Removes a model from a collection if it was exist
+     */
+    Object.defineProperty(proto, 'remove', {
+      value: function remove (options) {
         if (!this.collection) {
           return;
         }
         this.collection.remove(this, options);
-      },
+      }
+    });
 
-      // Run validation against the next complete set of model attributes,
-      // returning `true` if all is well. Otherwise, fire an `"invalid"` event.
-      _validate: function(attrs, options) {
+
+    /**
+     * @function BaseModelClass~_validate
+     * @private
+     * @description Run validation against the next complete set of model attributes,
+     *              returning `true` if all is well. Otherwise, fire an `"invalid"` event.
+     * @return {boolean}
+     */
+    Object.defineProperty(proto, '_validate', {
+      value: function _validate (attrs, options) {
         if (!options.validate || !this.validate) {
           return true;
         }
@@ -801,29 +1162,48 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
       }
     });
 
-    // Making BaseModel extendable over 'extend' method
-    BaseModel.extend = Extend;
-    return BaseModel;
+    /**
+     * @event BaseModelClass#change
+     * @description A change event.
+     * @param {BaseModelClass} model A model
+     * @param {mix} changed a changed value
+     * @param {object} options An options
+     */
+
+
+    return BaseModelClass;
   });
 
 angular.module('angular.models.core.events', [])
-  .service('Events', function () {
+  .service('Events', function (_) {
     'use strict';
+
 
     // A module that can be mixed in to *any object* in order to provide it with
     // custom events. You may bind with `on` or remove with `off` callback
     // functions to an event; `trigger`-ing an event fires all callbacks in
     // succession.
     //
-    //     var object = {};
-    //     _.extend(object, Backbone.Events);
+    //     var object = Object.create(Events.prototype);
     //     object.on('expand', function(){ alert('expanded'); });
     //     object.trigger('expand');
     //
-    var Events = {};
+    var Events = function () {};
 
     // Regular expression used to split event strings.
     var eventSplitter = /\s+/;
+
+    // The reducing API that adds a callback to the `events` object.
+    var onApi = function(events, name, callback, options) {
+      if (callback) {
+        var handlers = events[name] || (events[name] = []);
+        var context = options.context, ctx = options.ctx, listening = options.listening;
+        if (listening) { listening.count++; }
+
+        handlers.push({ callback: callback, context: context, ctx: context || ctx, listening: listening });
+      }
+      return events;
+    };
 
     // Iterates over the standard `event, callback` (as well as the fancy multiple
     // space-separated events `"change blur", callback` and jQuery-style event
@@ -834,8 +1214,10 @@ angular.module('angular.models.core.events', [])
       var i = 0, names;
       if (name && typeof name === 'object') {
         // Handle event maps.
-        if (callback !== void 0 && 'context' in opts && opts.context === void 0) opts.context = callback;
-        for (names = _.keys(name); i < names.length ; i++) {
+        if (callback !== void 0 && 'context' in opts && opts.context === void 0) {
+          opts.context = callback;
+        }
+        for (names = _.keys(name); i < names.length; i++) {
           memo = iteratee(memo, names[i], name[names[i]], opts);
         }
       } else if (name && eventSplitter.test(name)) {
@@ -847,12 +1229,6 @@ angular.module('angular.models.core.events', [])
         memo = iteratee(memo, name, callback, opts);
       }
       return memo;
-    };
-
-    // Bind an event to a `callback` function. Passing `"all"` will bind
-    // the callback to all events fired.
-    Events.on = function(name, callback, context) {
-      return internalOn(this, name, callback, context);
     };
 
     // An internal use `on` function, used to guard the `listening` argument from
@@ -872,77 +1248,10 @@ angular.module('angular.models.core.events', [])
       return obj;
     };
 
-    // Inversion-of-control versions of `on`. Tell *this* object to listen to
-    // an event in another object... keeping track of what it's listening to.
-    Events.listenTo =  function(obj, name, callback) {
-      if (!obj) return this;
-      var id = obj._listenId || (obj._listenId = _.uniqueId('l'));
-      var listeningTo = this._listeningTo || (this._listeningTo = {});
-      var listening = listeningTo[id];
-
-      // This object is not listening to any other events on `obj` yet.
-      // Setup the necessary references to track the listening callbacks.
-      if (!listening) {
-        var thisId = this._listenId || (this._listenId = _.uniqueId('l'));
-        listening = listeningTo[id] = {obj: obj, objId: id, id: thisId, listeningTo: listeningTo, count: 0};
-      }
-
-      // Bind callbacks on obj, and keep track of them on listening.
-      internalOn(obj, name, callback, this, listening);
-      return this;
-    };
-
-    // The reducing API that adds a callback to the `events` object.
-    var onApi = function(events, name, callback, options) {
-      if (callback) {
-        var handlers = events[name] || (events[name] = []);
-        var context = options.context, ctx = options.ctx, listening = options.listening;
-        if (listening) listening.count++;
-
-        handlers.push({ callback: callback, context: context, ctx: context || ctx, listening: listening });
-      }
-      return events;
-    };
-
-    // Remove one or many callbacks. If `context` is null, removes all
-    // callbacks with that function. If `callback` is null, removes all
-    // callbacks for the event. If `name` is null, removes all bound
-    // callbacks for all events.
-    Events.off =  function(name, callback, context) {
-      if (!this._events) return this;
-      this._events = eventsApi(offApi, this._events, name, callback, {
-          context: context,
-          listeners: this._listeners
-      });
-      return this;
-    };
-
-    // Tell this object to stop listening to either specific events ... or
-    // to every object it's currently listening to.
-    Events.stopListening =  function(obj, name, callback) {
-      var listeningTo = this._listeningTo;
-      if (!listeningTo) return this;
-
-      var ids = obj ? [obj._listenId] : _.keys(listeningTo);
-
-      for (var i = 0; i < ids.length; i++) {
-        var listening = listeningTo[ids[i]];
-
-        // If listening doesn't exist, this object is not currently
-        // listening to obj. Break out early.
-        if (!listening) break;
-
-        listening.obj.off(name, callback, this);
-      }
-      if (_.isEmpty(listeningTo)) this._listeningTo = void 0;
-
-      return this;
-    };
-
     // The reducing API that removes a callback from the `events` object.
     var offApi = function(events, name, callback, options) {
       // No events to consider.
-      if (!events) return;
+      if (!events) { return null; }
 
       var i = 0, listening;
       var context = options.context, listeners = options.listeners;
@@ -955,7 +1264,7 @@ angular.module('angular.models.core.events', [])
           delete listeners[listening.id];
           delete listening.listeningTo[listening.objId];
         }
-        return;
+        return null;
       }
 
       var names = name ? [name] : _.keys(events);
@@ -964,7 +1273,7 @@ angular.module('angular.models.core.events', [])
         var handlers = events[name];
 
         // Bail out if there are no events stored.
-        if (!handlers) break;
+        if (!handlers) { break; }
 
         // Replace events if there are any remaining.  Otherwise, clean up.
         var remaining = [];
@@ -992,24 +1301,7 @@ angular.module('angular.models.core.events', [])
           delete events[name];
         }
       }
-      if (_.size(events)) return events;
-    };
-
-    // Bind an event to only be triggered a single time. After the first time
-    // the callback is invoked, it will be removed. When multiple events are
-    // passed in using the space-separated syntax, the event will fire once for every
-    // event you passed in, not once for a combination of all events
-    Events.once =  function(name, callback, context) {
-      // Map the event into a `{event: once}` object.
-      var events = eventsApi(onceMap, {}, name, callback, _.bind(this.off, this));
-      return this.on(events, void 0, context);
-    };
-
-    // Inversion-of-control versions of `once`.
-    Events.listenToOnce =  function(obj, name, callback) {
-      // Map the event into a `{event: once}` object.
-      var events = eventsApi(onceMap, {}, name, callback, _.bind(this.stopListening, this, obj));
-      return this.listenTo(obj, events);
+      if (_.size(events)) { return events; }
     };
 
     // Reduces the event callbacks into a map of `{event: onceWrapper}`.
@@ -1025,19 +1317,17 @@ angular.module('angular.models.core.events', [])
       return map;
     };
 
-    // Trigger one or many events, firing all bound callbacks. Callbacks are
-    // passed the same arguments as `trigger` is, apart from the event name
-    // (unless you're listening on `"all"`, which will cause your callback to
-    // receive the true name of the event as the first argument).
-    Events.trigger =  function(name) {
-      if (!this._events) return this;
-
-      var length = Math.max(0, arguments.length - 1);
-      var args = Array(length);
-      for (var i = 0; i < length; i++) args[i] = arguments[i + 1];
-
-      eventsApi(triggerApi, this._events, name, void 0, args);
-      return this;
+    // A difficult-to-believe, but optimized internal dispatch function for
+    // triggering events. Tries to keep the usual cases speedy.
+    var triggerEvents = function(events, args) {
+      var ev, i = -1, l = events.length, a1 = args[0], a2 = args[1], a3 = args[2];
+      switch (args.length) {
+        case 0: while (++i < l) { (ev = events[i]).callback.call(ev.ctx); } return;
+        case 1: while (++i < l) { (ev = events[i]).callback.call(ev.ctx, a1); } return;
+        case 2: while (++i < l) { (ev = events[i]).callback.call(ev.ctx, a1, a2); } return;
+        case 3: while (++i < l) { (ev = events[i]).callback.call(ev.ctx, a1, a2, a3); } return;
+        default: while (++i < l) { (ev = events[i]).callback.apply(ev.ctx, args); } return;
+      }
     };
 
     // Handles triggering the appropriate event callbacks.
@@ -1045,139 +1335,199 @@ angular.module('angular.models.core.events', [])
       if (objEvents) {
         var events = objEvents[name];
         var allEvents = objEvents.all;
-        if (events && allEvents) allEvents = allEvents.slice();
-        if (events) triggerEvents(events, args);
-        if (allEvents) triggerEvents(allEvents, [name].concat(args));
+        if (events && allEvents) { allEvents = allEvents.slice(); }
+        if (events) { triggerEvents(events, args); }
+        if (allEvents) { triggerEvents(allEvents, [name].concat(args)); }
       }
       return objEvents;
     };
 
-    // A difficult-to-believe, but optimized internal dispatch function for
-    // triggering events. Tries to keep the usual cases speedy (most internal
-    // Backbone events have 3 arguments).
-    var triggerEvents = function(events, args) {
-      var ev, i = -1, l = events.length, a1 = args[0], a2 = args[1], a3 = args[2];
-      switch (args.length) {
-        case 0: while (++i < l) (ev = events[i]).callback.call(ev.ctx); return;
-        case 1: while (++i < l) (ev = events[i]).callback.call(ev.ctx, a1); return;
-        case 2: while (++i < l) (ev = events[i]).callback.call(ev.ctx, a1, a2); return;
-        case 3: while (++i < l) (ev = events[i]).callback.call(ev.ctx, a1, a2, a3); return;
-        default: while (++i < l) (ev = events[i]).callback.apply(ev.ctx, args); return;
+    // Bind an event to a `callback` function. Passing `"all"` will bind
+    // the callback to all events fired.
+    Events.prototype.on = function(name, callback, context) {
+      return internalOn(this, name, callback, context);
+    };
+
+    // Inversion-of-control versions of `on`. Tell *this* object to listen to
+    // an event in another object... keeping track of what it's listening to.
+    Events.prototype.listenTo = function(obj, name, callback) {
+      if (!obj) { return this; }
+      var id = obj._listenId || (obj._listenId = _.uniqueId('l'));
+      var listeningTo = this._listeningTo || (this._listeningTo = {});
+      var listening = listeningTo[id];
+
+      // This object is not listening to any other events on `obj` yet.
+      // Setup the necessary references to track the listening callbacks.
+      if (!listening) {
+        var thisId = this._listenId || (this._listenId = _.uniqueId('l'));
+        listening = listeningTo[id] = {obj: obj, objId: id, id: thisId, listeningTo: listeningTo, count: 0};
       }
+
+      // Bind callbacks on obj, and keep track of them on listening.
+      internalOn(obj, name, callback, this, listening);
+      return this;
+    };
+
+    // Remove one or many callbacks. If `context` is null, removes all
+    // callbacks with that function. If `callback` is null, removes all
+    // callbacks for the event. If `name` is null, removes all bound
+    // callbacks for all events.
+    Events.prototype.off = function(name, callback, context) {
+      if (!this._events) { return this; }
+      this._events = eventsApi(offApi, this._events, name, callback, {
+          context: context,
+          listeners: this._listeners
+      });
+      return this;
+    };
+
+    // Tell this object to stop listening to either specific events ... or
+    // to every object it's currently listening to.
+    Events.prototype.stopListening = function(obj, name, callback) {
+      var listeningTo = this._listeningTo;
+      if (!listeningTo) { return this; }
+
+      var ids = obj ? [obj._listenId] : _.keys(listeningTo);
+
+      for (var i = 0; i < ids.length; i++) {
+        var listening = listeningTo[ids[i]];
+
+        // If listening doesn't exist, this object is not currently
+        // listening to obj. Break out early.
+        if (!listening) { break; }
+
+        listening.obj.off(name, callback, this);
+      }
+      if (_.isEmpty(listeningTo)) { this._listeningTo = void 0; }
+
+      return this;
+    };
+
+    // Bind an event to only be triggered a single time. After the first time
+    // the callback is invoked, it will be removed. When multiple events are
+    // passed in using the space-separated syntax, the event will fire once for every
+    // event you passed in, not once for a combination of all events
+    Events.prototype.once = function(name, callback, context) {
+      // Map the event into a `{event: once}` object.
+      var events = eventsApi(onceMap, {}, name, callback, _.bind(this.off, this));
+      return this.on(events, void 0, context);
+    };
+
+    // Inversion-of-control versions of `once`.
+    Events.prototype.listenToOnce = function(obj, name, callback) {
+      // Map the event into a `{event: once}` object.
+      var events = eventsApi(onceMap, {}, name, callback, _.bind(this.stopListening, this, obj));
+      return this.listenTo(obj, events);
+    };
+
+    // Trigger one or many events, firing all bound callbacks. Callbacks are
+    // passed the same arguments as `trigger` is, apart from the event name
+    // (unless you're listening on `"all"`, which will cause your callback to
+    // receive the true name of the event as the first argument).
+    Events.prototype.trigger = function(name) {
+      if (!this._events) { return this; }
+
+      var length = Math.max(0, arguments.length - 1);
+      var args = Array(length);
+      for (var i = 0; i < length; i++) { args[i] = arguments[i + 1]; }
+
+      eventsApi(triggerApi, this._events, name, void 0, args);
+      return this;
     };
 
     // Aliases for backwards compatibility.
-    Events.bind   = Events.on;
-    Events.unbind = Events.off;
+    Events.prototype.bind = Events.prototype.on;
+    Events.prototype.unbind = Events.prototype.off;
 
     return Events;
   });
 
-angular.module('angular.models.core.extend', [])
-  .service('Extend', function(){
+angular.module('angular.models.core.sync', ['angular.models.helper', 'angular.models.core.events'])
+  .factory('Sync', function ($http, _, Events) {
     'use strict';
-    // Function to correctly set up the prototype chain, for subclasses.
-    // Similar to `goog.inherits`, but uses a hash of prototype properties and
-    // class properties to be extended.
-    return function(protoProps, staticProps) {
-      var parent = this;
-      var child;
+    var proto;
 
-      // The constructor function for the new subclass is either defined by you
-      // (the "constructor" property in your `extend` definition), or defaulted
-      // by us to simply call the parent's constructor.
-      if (protoProps && _.has(protoProps, 'constructor')) {
-          child = protoProps.constructor;
-      } else {
-          child = function(){ return parent.apply(this, arguments); };
+    /**
+     * @class Sync
+     * @description Override this function to change the manner in which Backbone persists
+     *              models to the server. You will be passed the type of request, and the
+     *              model in question. By default, makes a RESTful Ajax request
+     *              to the model's `url()`. Some possible customizations could be:
+     *
+     *              * Use `setTimeout` to batch rapid-fire updates into a single request.
+     *              * Send up the models as XML instead of JSON.
+     *              * Persist models via WebSockets instead of Ajax.
+     *
+     *              Turn on `Backbone.emulateHTTP` in order to send `PUT` and `DELETE` requests
+     *              as `POST`, with a `_method` parameter containing the true HTTP method,
+     *              as well as all requests with the body as `application/x-www-form-urlencoded`
+     *              instead of `application/json` with the model in a param named `model`.
+     *              Useful when interfacing with server-side languages like **PHP** that make
+     *              it difficult to read the body of `PUT` requests.
+     */
+    function Sync () {}
+
+    proto = Sync.prototype = Object.create(Events.prototype);
+
+    /**
+     * @function Sync#sync
+     * @description Proxy `Sync` by default -- but override this if you need
+     *              custom syncing semantics for *this* particular model.
+     * @param  {string} method   GET, POST, PUT, DELETE methods
+     * @param  {BaseModelClass} model An instance of a BaseModelClass
+     * @param  {Object} options An options
+     * @return {Promise}
+     */
+    Object.defineProperty(proto, 'sync', {
+      value: function (method, model, options) {
+        // Default options, unless specified.
+        _.defaults(options || (options = {}));
+
+        // Default JSON-request options.
+        var params = _.extend({method: method, dataType: 'json', cache: false}, _.pick(options, 'params'));
+
+        params.headers = {};
+        params.headers['accept'] = 'application/json, text/plain, */*';
+
+        params.url = options.url || _.result(model, 'url');
+        // Ensure that we have a URL.
+        if (!params.url) {
+          throw new Error('A "url" property or function must be specified');
+        }
+
+        // if (options.params)
+
+        // Ensure that we have the appropriate request data.
+        if (options.data == null && model && _.include(['POST', 'PUT', 'PATCH'], method)) {
+          params.headers['content-type'] = 'application/json';
+          params.data = JSON.stringify(options.attrs || model.toJSON(options));
+        }
+
+        options.success = options.success || angular.noop;
+        options.error = options.error || angular.noop;
+
+        return $http(params)
+          .success(options.success)
+          .error(options.error);
       }
-
-      // Add static properties to the constructor function, if supplied.
-      _.extend(child, parent, staticProps);
-
-      // Set the prototype chain to inherit from `parent`, without calling
-      // `parent`'s constructor function.
-      var Surrogate = function(){ this.constructor = child; };
-      Surrogate.prototype = parent.prototype;
-      child.prototype = new Surrogate();
-
-      // Add prototype properties (instance properties) to the subclass,
-      // if supplied.
-      if (protoProps) {
-        _.extend(child.prototype, protoProps);
-      }
-
-      // Set a convenience property in case the parent's prototype is needed
-      // later.
-      child.__super__ = parent.prototype;
-
-      return child;
-    };
-  });
-
-angular.module('angular.models.core.sync', ['angular.models.helper'])
-  // Override this function to change the manner in which Backbone persists
-  // models to the server. You will be passed the type of request, and the
-  // model in question. By default, makes a RESTful Ajax request
-  // to the model's `url()`. Some possible customizations could be:
-  //
-  // * Use `setTimeout` to batch rapid-fire updates into a single request.
-  // * Send up the models as XML instead of JSON.
-  // * Persist models via WebSockets instead of Ajax.
-  //
-  // Turn on `Backbone.emulateHTTP` in order to send `PUT` and `DELETE` requests
-  // as `POST`, with a `_method` parameter containing the true HTTP method,
-  // as well as all requests with the body as `application/x-www-form-urlencoded`
-  // instead of `application/json` with the model in a param named `model`.
-  // Useful when interfacing with server-side languages like **PHP** that make
-  // it difficult to read the body of `PUT` requests.
-  .factory('Sync', function ($http, _) {
-    'use strict';
-
-    function Sync (method, model, options) {
-      // Default options, unless specified.
-      _.defaults(options || (options = {}));
-
-      // Default JSON-request options.
-      var params = _.extend({method: method, dataType: 'json', cache: false}, _.pick(options, 'params'));
-
-      params.headers = {};
-      params.headers['accept'] = 'application/json, text/plain, */*';
-
-      params.url = options.url || _.result(model, 'url');
-      // Ensure that we have a URL.
-      if (!params.url) {
-        throw new Error('A "url" property or function must be specified');
-      }
-
-      if (options.params)
-
-      // Ensure that we have the appropriate request data.
-      if (options.data == null && model && _.include(['POST', 'PUT', 'PATCH'], method)) {
-        params.headers['content-type'] = 'application/json';
-        params.data = JSON.stringify(options.attrs || model.toJSON(options));
-      }
-
-      options.success = options.success || angular.noop;
-      options.error = options.error || angular.noop;
-
-      return $http(params)
-        .success(options.success)
-        .error(options.error);
-    }
+    });
 
     return Sync;
   });
 
 angular.module('angular.models.exception.validation', [])
   .factory('ValidationException', function () {
-
+    'use strict';
     // Represents the exception that occurs
     // during validation of a data field
     function ValidationException (message) {
       this.name = 'ValidationError';
       this.message = message;
     }
+
+    var my_favorite_color = "#112C85";
+
+
 
     ValidationException.prototype = new Error();
     ValidationException.constructor = ValidationException;
@@ -1194,10 +1544,10 @@ angular.module('angular.models.helper', ['angular.models.core.model'])
     }
   ])
 
-  .factory('isModel', function (BaseModel){
+  .factory('isModel', function (BaseModelClass){
     'use strict';
-    return function isModel(attrs) {
-      return attrs instanceof BaseModel;
+    return function isModel(obj) {
+      return obj instanceof BaseModelClass;
     };
   })
 
