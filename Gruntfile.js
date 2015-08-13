@@ -81,6 +81,7 @@ module.exports = function (grunt) {
         }
       }
     },
+
     jsdoc : {
       dist : {
         src: ['src/**/*.js', '!src/**/*.spec.js'],
@@ -89,6 +90,17 @@ module.exports = function (grunt) {
         }
       }
     },
+
+    eslint: {
+      target: ['src/**/*.js', '!src/**/*.spec.js']
+    },
+
+    githooks: {
+      all: {
+        'pre-commit': 'eslint'
+      }
+    },
+
     // Test settings
     karma: {
       unit: {
@@ -96,6 +108,7 @@ module.exports = function (grunt) {
         singleRun: true
       }
     },
+
     connect: {
       'default': {
         options: {
