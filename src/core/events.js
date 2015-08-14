@@ -2,16 +2,18 @@ angular.module('angular.models.core.events', [])
   .service('Events', function (_) {
     'use strict';
 
-
-    // A module that can be mixed in to *any object* in order to provide it with
-    // custom events. You may bind with `on` or remove with `off` callback
-    // functions to an event; `trigger`-ing an event fires all callbacks in
-    // succession.
-    //
-    //     var object = Object.create(Events.prototype);
-    //     object.on('expand', function(){ alert('expanded'); });
-    //     object.trigger('expand');
-    //
+    /**
+     * @class Events
+     * @description A module that can be mixed in to *any object* in order to provide it with
+     *              custom events. You may bind with `on` or remove with `off` callback
+     *              functions to an event; `trigger`-ing an event fires all callbacks in
+     *              succession.
+     *
+     *  @example
+     *  // var object = Object.create(Events.prototype);
+     *  // object.on('expand', function(){ alert('expanded'); });
+     *  // object.trigger('expand');
+     */
     var Events = function () {};
 
     // Regular expression used to split event strings.
@@ -59,9 +61,9 @@ angular.module('angular.models.core.events', [])
     // the public API.
     var internalOn = function(obj, name, callback, context, listening) {
       obj._events = eventsApi(onApi, obj._events || {}, name, callback, {
-          context: context,
-          ctx: obj,
-          listening: listening
+        context: context,
+        ctx: obj,
+        listening: listening
       });
 
       if (listening) {
@@ -166,14 +168,26 @@ angular.module('angular.models.core.events', [])
       return objEvents;
     };
 
-    // Bind an event to a `callback` function. Passing `"all"` will bind
-    // the callback to all events fired.
+    /**
+     * Bind an event to a `callback` function. Passing `"all"` will bind
+     * the callback to all events fired.
+     * @function Events#on
+     * @param  {string}   name     An event name
+     * @param  {Function} callback A callback funciton
+     * @param  {Object}   context  A context
+     */
     Events.prototype.on = function(name, callback, context) {
       return internalOn(this, name, callback, context);
     };
 
-    // Inversion-of-control versions of `on`. Tell *this* object to listen to
-    // an event in another object... keeping track of what it's listening to.
+    /**
+     * Inversion-of-control versions of `on`. Tell *this* object to listen to
+     * an event in another object... keeping track of what it's listening to.
+     * @function Events#listenTo
+     * @param {object} object An object which events to listen
+     * @param {string} name An event name
+     * @param {Function} callback A callback function
+     */
     Events.prototype.listenTo = function(obj, name, callback) {
       if (!obj) { return this; }
       var id = obj._listenId || (obj._listenId = _.uniqueId('l'));
@@ -199,8 +213,8 @@ angular.module('angular.models.core.events', [])
     Events.prototype.off = function(name, callback, context) {
       if (!this._events) { return this; }
       this._events = eventsApi(offApi, this._events, name, callback, {
-          context: context,
-          listeners: this._listeners
+        context: context,
+        listeners: this._listeners
       });
       return this;
     };
