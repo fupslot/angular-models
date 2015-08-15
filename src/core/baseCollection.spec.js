@@ -1,25 +1,55 @@
-xdescribe('Core: BaseCollection', function () {
+describe('Core: BaseCollectionClass', function () {
   'use strict';
-  var $httpBackend, Persons;
+  var $httpBackend;
+  var BaseModelClass;
+  var BaseCollectionClass;
+  var Person;
+  var Persons;
 
-  beforeEach(module('myApp'));
+  beforeEach(module('angular.models'));
 
-  beforeEach(inject(function($injector){
-    $httpBackend = $injector.get('$httpBackend');
-    Persons = $injector.get('Persons');
+  beforeEach(inject(function(_$httpBackend_, _BaseModelClass_, _BaseCollectionClass_){
+    $httpBackend = _$httpBackend_;
+    BaseModelClass = _BaseModelClass_;
+    BaseCollectionClass = _BaseCollectionClass_;
   }));
 
-  describe('Initialization', function(){
-    it('should be able to fetch data', function(){
+  beforeEach(function () {
+    Person = BaseModelClass.extend({
+      urlRoot: {
+        value: '/persons'
+      }
+    });
+
+    Persons = BaseCollectionClass.extend({
+      model: {
+        value: Person
+      },
+      url: {
+        value: '/persons'
+      }
+    });
+  });
+
+  describe('fetching', function(){
+    it('should be able to fetch a collection froma server', function(){
+      var persons;
+      var person;
+
+      Persons.url = '/fake';
+
       $httpBackend
         .expectGET('/persons')
-        .respond([{id:1, name:'Bon Jovi'}]);
+        .respond([{id: 1, name: 'Eugene'}]);
 
-      Persons.fetch();
+      persons = new Persons();
+      persons.fetch();
       $httpBackend.flush();
 
-      expect(Persons).toBeDefined();
-      expect(Persons.length).toBe(1);
+      expect(persons.length).toBe(1);
+
+      person = persons.first();
+      expect(person.get('name')).toEqual('Eugene');
     });
   });
 });

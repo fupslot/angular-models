@@ -1,4 +1,4 @@
-describe('Core: baseModel', function () {
+describe('Core: BaseModelClass', function () {
   'use strict';
   var BaseModelClass, Events, Sync;
 
@@ -77,6 +77,7 @@ describe('Core: baseModel', function () {
     var Person;
     var $httpBackend;
     var BaseModelClass;
+    var responseSpy;
 
     beforeEach(inject(function(_$httpBackend_, _BaseModelClass_){
       $httpBackend = _$httpBackend_;
@@ -84,9 +85,17 @@ describe('Core: baseModel', function () {
     }));
 
     beforeEach(function () {
+      responseSpy = jasmine.createSpy('responseSpy');
+
       Person = BaseModelClass.extend({
         urlRoot: {
           value: '/persons'
+        },
+        parse: {
+          value: function (response) {
+            responseSpy();
+            return response;
+          }
         }
       });
     });
@@ -99,8 +108,23 @@ describe('Core: baseModel', function () {
       person.fetch();
       $httpBackend.flush();
 
+      expect(responseSpy).toHaveBeenCalled();
       expect(person.get('id')).toEqual(1);
       expect(person.get('name')).toEqual('Eugene');
+    });
+
+    it('should be able to save a model', function () {
+      $httpBackend.expectPUT('/persons/1')
+        .respond({id: 1, name: 'Eugene Brodsky'});
+
+      var person = new Person({id: 1, name: 'Eugene'});
+      expect(person.get('name')).toEqual('Eugene');
+      person.set('name', 'Eugene Brodsky');
+      person.save();
+
+      $httpBackend.flush();
+      expect(responseSpy).toHaveBeenCalled();
+      expect(person.get('name')).toEqual('Eugene Brodsky');
     });
   });
 });
