@@ -180,7 +180,7 @@ module.exports = function (grunt) {
     }
   });
 
-  grunt.registerTask('build', ['eslint', 'clean:dist', 'concat:dist', 'uglify:dist']);
+  grunt.registerTask('build', ['eslint', 'karma:unit', 'clean:dist', 'concat:dist', 'uglify:dist']);
   grunt.registerTask('serve', ['wiredep:demo', 'injector:demo-src','connect:demo','watch']);
   grunt.registerTask('test', ['injector:jasmine-src', 'injector:jasmine-spec', 'wiredep:jasmine', 'clean:dist', 'concat:dist', 'karma:unit']);
 

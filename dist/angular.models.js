@@ -412,7 +412,7 @@ angular.module('angular.models.core.collection', ['angular.models.exception.vali
      * @return {type}
      */
     Object.defineProperty(proto, 'fetch', {
-      value: function (options) {
+      value: function fetch (options) {
         var self = this;
         return $q(function (resolve, reject) {
           options = _.extend({}, options, {parse: true});
@@ -424,7 +424,7 @@ angular.module('angular.models.core.collection', ['angular.models.exception.vali
           };
 
           WrapError(self, reject, options);
-          Sync('GET', self, options);
+          self.sync('GET', self, options);
         });
       }
     });
@@ -1147,7 +1147,7 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
      */
     Object.defineProperty(proto, 'fetch', {
       value: function fetch (options) {
-        var model   = this;
+        var model = this;
         options = _.extend({}, options);
 
         return $q(function (resolve, reject) {
