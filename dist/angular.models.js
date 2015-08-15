@@ -2,6 +2,7 @@
 'use strict';
 /** @namespace Core */
 angular.module('angular.models', [
+  'angular.models.core.extend',
   'angular.models.core.sync',
   'angular.models.core.model',
   'angular.models.core.collection',
@@ -9,8 +10,8 @@ angular.module('angular.models', [
   'angular.models.exception.validation'
 ]);
 
-angular.module('angular.models.core.collection', ['angular.models.exception.validation', 'angular.models.helper', 'angular.models.core.sync', 'angular.models.core.model'])
-  .factory('BaseCollectionClass', function ($q, $parse, Sync, WrapError, ValidationException, _, isModel) {
+angular.module('angular.models.core.collection', ['angular.models.exception.validation', 'angular.models.helper', 'angular.models.core.sync', 'angular.models.core.extend', 'angular.models.core.model'])
+  .factory('BaseCollectionClass', function ($q, $parse, Extend, Sync, WrapError, ValidationException, _, isModel) {
     'use strict';
 
     var proto;
@@ -593,12 +594,14 @@ angular.module('angular.models.core.collection', ['angular.models.exception.vali
       });
     });
 
+    BaseCollectionClass.extend = Extend;
+
     return BaseCollectionClass;
   });
 
 /** @namespace Core/Models */
-angular.module('angular.models.core.model', ['angular.models.exception.validation', 'angular.models.helper', 'angular.models.core.sync'])
-  .factory('BaseModelClass', function ($q, $parse, Sync, WrapError, ValidationException, _) {
+angular.module('angular.models.core.model', ['angular.models.exception.validation', 'angular.models.helper', 'angular.models.core.sync', 'angular.models.core.extend'])
+  .factory('BaseModelClass', function ($q, $parse, Extend, Sync, WrapError, ValidationException, _) {
     'use strict';
 
     var proto;
@@ -1252,6 +1255,9 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
      * @memberOf Core/Models
      */
 
+     // This will make a BaseModeClass is extendable
+    BaseModelClass.extend = Extend;
+
     return BaseModelClass;
   });
 
@@ -1535,6 +1541,30 @@ angular.module('angular.models.core.events', [])
     Events.prototype.unbind = Events.prototype.off;
 
     return Events;
+  });
+
+angular.module('angular.models.core.extend', [])
+  .factory('Extend', function () {
+    'use strict';
+
+    function Extend (proto) {
+      var parent = this;
+      var child;
+
+      if (proto && proto.hasOwnProperty('constructor')) {
+        child = proto.constructor.value;
+      } else {
+        child = function() { return parent.apply(this, arguments); };
+      }
+
+      child.prototype = Object.create(parent.prototype, proto);
+
+      child.__super__ = parent.prototype;
+
+      return child;
+    }
+
+    return Extend;
   });
 
 angular.module('angular.models.core.sync', ['angular.models.helper', 'angular.models.core.events'])

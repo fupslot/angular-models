@@ -546,7 +546,7 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
      */
     Object.defineProperty(proto, 'fetch', {
       value: function fetch (options) {
-        var model   = this;
+        var model = this;
         options = _.extend({}, options);
 
         return $q(function (resolve, reject) {

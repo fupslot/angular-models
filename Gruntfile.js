@@ -10,7 +10,8 @@ module.exports = function (grunt) {
       tmp: './.tmp',
       dist: './dist',
       demo: './demo',
-      src: './src'
+      src: './src',
+      jasmine: './jasmine'
     },
     pkg: grunt.file.readJSON('package.json'),
     watch: {
@@ -24,8 +25,44 @@ module.exports = function (grunt) {
     },
     // Injector
     injector: {
+      'jasmine-src': {
+        options: {
+          transform: function(filePath) {
+            filePath = filePath.replace('\/\.', '..');
+            return '<script src="' + filePath + '"></script>';
+          },
+          starttag: '<!-- injector:src -->',
+          endtag: '<!-- endinjector -->'
+        },
+        files: {
+          '<%= app.jasmine %>/SpecRunner.html': [
+            [
+              '<%= app.src %>/**/*.js',
+              '!<%= app.src %>/**/*.spec.js'
+            ]
+          ]
+        }
+      },
+      'jasmine-spec': {
+        options: {
+          transform: function(filePath) {
+            filePath = filePath.replace('\/\.', '..');
+            return '<script src="' + filePath + '"></script>';
+          },
+          starttag: '<!-- injector:spec -->',
+          endtag: '<!-- endinjector -->'
+        },
+        files: {
+          '<%= app.jasmine %>/SpecRunner.html': [
+            [
+              '!<%= app.src %>/**/*.js',
+              '<%= app.src %>/**/*.spec.js'
+            ]
+          ]
+        }
+      },
       // Inject application script files into index.html (doesn't include bower)
-      scripts: {
+      'demo-src': {
         options: {
           transform: function(filePath) {
             filePath = filePath.replace('\/\.', '..');
@@ -38,8 +75,7 @@ module.exports = function (grunt) {
           '<%= app.demo %>/index.html': [
             [
               '<%= app.dist %>/<%= pkg.name%>.js',
-              '<%= app.demo %>/app/**/*.js',
-              '!<%= app.src %>/**/*.spec.js'
+              '<%= app.demo %>/app/**/*.js'
             ]
           ]
         }
@@ -47,9 +83,13 @@ module.exports = function (grunt) {
     },
     // Automatically inject Bower components into the app
     wiredep: {
-      target: {
+      demo: {
         src: '<%= app.demo %>/index.html',
         exclude: []
+      },
+      jasmine: {
+        src: '<%= app.jasmine %>/SpecRunner.html',
+        exclude: [/bootstrap.js/]
       }
     },
     // Clean
@@ -111,7 +151,7 @@ module.exports = function (grunt) {
     },
 
     connect: {
-      'default': {
+      'demo': {
         options: {
           port: 3333,
           livereload: true,
@@ -123,12 +163,25 @@ module.exports = function (grunt) {
             }
           }
         }
+      },
+      'test': {
+        options: {
+          port: 4444,
+          keepalive: true,
+          open: true,
+          base: {
+            path: './',
+            options: {
+              index: './jasmine/SpecRunner.html'
+            }
+          }
+        }
       }
     }
   });
 
   grunt.registerTask('build', ['eslint', 'clean:dist', 'concat:dist', 'uglify:dist']);
-  grunt.registerTask('serve', ['wiredep', 'injector','connect','watch']);
-  grunt.registerTask('test', ['clean:dist', 'concat:dist', 'karma:unit']);
+  grunt.registerTask('serve', ['wiredep:demo', 'injector:demo-src','connect:demo','watch']);
+  grunt.registerTask('test', ['injector:jasmine-src', 'injector:jasmine-spec', 'wiredep:jasmine', 'clean:dist', 'concat:dist', 'karma:unit']);
 
 };

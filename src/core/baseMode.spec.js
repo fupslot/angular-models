@@ -20,19 +20,19 @@ describe('Core: baseModel', function () {
     });
 
     it('should be inherited from a Event class', function () {
-      expect(model instanceof Events);
+      expect(model instanceof Events).toBeTruthy();
     });
 
     it('should be inherited from a Sync class', function () {
-      expect(model instanceof Sync);
+      expect(model instanceof Sync).toBeTruthy();
     });
 
-    it('should ne an instanceof a BaseModel', function () {
+    it('should be an instanceof a BaseModel', function () {
       expect(model instanceof BaseModelClass).toBeTruthy();
     });
   });
 
-  describe('Person model', function () {
+  describe('Extendable', function () {
     var PersonCls;
     var person;
 
@@ -55,31 +55,52 @@ describe('Core: baseModel', function () {
       });
     });
 
-    it('defaults', function () {
+    it('default definition', function () {
       person = new PersonCls();
-      expect(person.name).toEqual('Unknown');
+      expect(person.get('name')).toEqual('Unknown');
     });
 
     it('custom definition', function () {
       person = new PersonCls({name: 'Eugene'});
+      expect(person.get('name')).toEqual('Eugene');
+    });
+
+    it('use custom accessors', function () {
+      person = new PersonCls({name: 'Eugene'});
       expect(person.name).toEqual('Eugene');
+      person.name = 'Paul';
+      expect(person.name).toEqual('Paul');
     });
   });
 
-  xdescribe('Base Model', function() {
-    var Person, http, httpBackend;
+  describe('Base Model', function() {
+    var Person;
+    var $httpBackend;
+    var BaseModelClass;
 
-    beforeEach(inject(function($http, $httpBackend, BaseModel){
-      http = $http;
-      httpBackend = $httpBackend; // Doesn't work, Findout why!!!
-      Person = BaseModel.extend({
-        urlRoot: '/persons'
-      });
+    beforeEach(inject(function(_$httpBackend_, _BaseModelClass_){
+      $httpBackend = _$httpBackend_;
+      BaseModelClass = _BaseModelClass_;
     }));
 
-    it('should be able to extend base model', function () {
-      var person = new Person({name:'Bon Jovi'});
-      expect(person).toBeDefined();
+    beforeEach(function () {
+      Person = BaseModelClass.extend({
+        urlRoot: {
+          value: '/persons'
+        }
+      });
+    });
+
+    it('should be able to fetch a model from the server', function () {
+      $httpBackend.expectGET('/persons/1')
+        .respond({id: 1, name: 'Eugene'});
+
+      var person = new Person({id: 1});
+      person.fetch();
+      $httpBackend.flush();
+
+      expect(person.get('id')).toEqual(1);
+      expect(person.get('name')).toEqual('Eugene');
     });
   });
 });

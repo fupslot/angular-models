@@ -111,6 +111,9 @@ describe('Core: ', function () {
         expect(me instanceof BaseCls).toBeTruthy();
         expect(me instanceof PersonCls).toBeTruthy();
         expect(me instanceof MeCls).toBeTruthy();
+      });
+
+      it('should call Person#print method', function () {
         expect(me.print()).toEqual('Person');
       });
     });
