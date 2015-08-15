@@ -1,8 +1,21 @@
 angular.module('myApp', ['angular.models', 'ngMockE2E'])
-  .factory('PersonModel', function(BaseModel){
-    return BaseModel.extend({
-      urlRoot: '/persons'
+  .factory('PersonModel', function(BaseModelClass){
+    var proto;
+
+    proto = Object.create(null);
+
+
+
+    BaseModelClass.extend(PersonModel, proto);
+
+    PersonModel.prototype = Object.create(BaseModelClass.prototype, {
+
     });
+
+    return PersonModel;
+    // return BaseModel.extend({
+    //   urlRoot: '/persons'
+    // });
   })
 
   .factory('PersonCollection', function(BaseCollection, PersonModel){

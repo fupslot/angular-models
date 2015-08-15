@@ -1,5 +1,5 @@
 /** @namespace Core/Models */
-angular.module('angular.models.core.model', ['angular.models.exception.validation', 'angular.models.helper', 'angular.models.core.sync'])
+angular.module('angular.models.core.model', ['angular.models.exception.validation', 'angular.models.helper', 'angular.models.core.sync', 'angular.models.core.extend'])
   .factory('BaseModelClass', function ($q, $parse, Extend, Sync, WrapError, ValidationException, _) {
     'use strict';
 
@@ -653,6 +653,9 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
      * @param {object} options An options
      * @memberOf Core/Models
      */
+
+     // This will make a BaseModeClass is extendable
+    BaseModelClass.extend = Extend;
 
     return BaseModelClass;
   });

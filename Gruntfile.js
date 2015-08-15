@@ -105,6 +105,7 @@ module.exports = function (grunt) {
     karma: {
       unit: {
         configFile: 'karma.conf.js',
+        reporters: ['spec'],
         singleRun: true
       }
     },
@@ -126,8 +127,8 @@ module.exports = function (grunt) {
     }
   });
 
-  grunt.registerTask('build', ['clean:dist', 'concat:dist', 'uglify:dist']);
-  grunt.registerTask('serve', ['wiredep','injector','connect','watch']);
+  grunt.registerTask('build', ['eslint', 'clean:dist', 'concat:dist', 'uglify:dist']);
+  grunt.registerTask('serve', ['wiredep', 'injector','connect','watch']);
   grunt.registerTask('test', ['clean:dist', 'concat:dist', 'karma:unit']);
 
 };

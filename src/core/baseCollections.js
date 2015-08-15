@@ -1,5 +1,5 @@
-angular.module('angular.models.core.collection', ['angular.models.exception.validation', 'angular.models.helper', 'angular.models.core.sync', 'angular.models.core.model'])
-  .factory('BaseCollectionClass', function ($q, $parse, Sync, WrapError, ValidationException, _, isModel) {
+angular.module('angular.models.core.collection', ['angular.models.exception.validation', 'angular.models.helper', 'angular.models.core.sync', 'angular.models.core.extend', 'angular.models.core.model'])
+  .factory('BaseCollectionClass', function ($q, $parse, Extend, Sync, WrapError, ValidationException, _, isModel) {
     'use strict';
 
     var proto;
@@ -140,10 +140,12 @@ angular.module('angular.models.core.collection', ['angular.models.exception.vali
         var add = options.add, merge = options.merge, remove = options.remove;
         var order = !sortable && add && remove ? [] : false;
         var orderChanged = false;
+        var i;
+        var length;
 
         // Turn bare objects into model references, and prevent invalid models
         // from being added.
-        for (var i = 0, length = models.length; i < length; i++) {
+        for (i = 0, length = models.length; i < length; i++) {
           attrs = models[i];
 
           // If a duplicate is found, prevent it from being added and
@@ -192,7 +194,7 @@ angular.module('angular.models.core.collection', ['angular.models.exception.vali
 
         // Remove nonexistent models if appropriate.
         if (remove) {
-          for (var i = 0, length = this.length; i < length; i++) {
+          for (i = 0, length = this.length; i < length; i++) {
             if (!modelMap[(model = this.models[i]).cid]) {
               toRemove.push(model);
             }
@@ -209,7 +211,7 @@ angular.module('angular.models.core.collection', ['angular.models.exception.vali
           }
           this.length += toAdd.length;
           if (at != null) {
-            for (var i = 0, length = toAdd.length; i < length; i++) {
+            for (i = 0, length = toAdd.length; i < length; i++) {
               this.models.splice(at + i, 0, toAdd[i]);
             }
           } else {
@@ -217,7 +219,7 @@ angular.module('angular.models.core.collection', ['angular.models.exception.vali
               this.models.length = 0;
             }
             var orderedModels = order || toAdd;
-            for (var i = 0, length = orderedModels.length; i < length; i++) {
+            for (i = 0, length = orderedModels.length; i < length; i++) {
               this.models.push(orderedModels[i]);
             }
           }
@@ -231,7 +233,7 @@ angular.module('angular.models.core.collection', ['angular.models.exception.vali
         // Unless silenced, it's time to fire all appropriate add/sort events.
         if (!options.silent) {
           var addOpts = at != null ? _.clone(options) : options;
-          for (var i = 0, length = toAdd.length; i < length; i++) {
+          for (i = 0, length = toAdd.length; i < length; i++) {
             if (at != null) {
               addOpts.index = at + i;
             }
@@ -579,6 +581,8 @@ angular.module('angular.models.core.collection', ['angular.models.exception.vali
         }
       });
     });
+
+    BaseCollectionClass.extend = Extend;
 
     return BaseCollectionClass;
   });

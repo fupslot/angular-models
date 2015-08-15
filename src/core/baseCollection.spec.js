@@ -1,4 +1,4 @@
-describe('Core: BaseCollection', function () {
+xdescribe('Core: BaseCollection', function () {
   'use strict';
   var $httpBackend, Persons;
 

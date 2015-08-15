@@ -1,6 +1,6 @@
 (function(angular) {
 'use strict';
-
+/** @namespace Core */
 angular.module('angular.models', [
   'angular.models.core.sync',
   'angular.models.core.model',
@@ -151,10 +151,12 @@ angular.module('angular.models.core.collection', ['angular.models.exception.vali
         var add = options.add, merge = options.merge, remove = options.remove;
         var order = !sortable && add && remove ? [] : false;
         var orderChanged = false;
+        var i;
+        var length;
 
         // Turn bare objects into model references, and prevent invalid models
         // from being added.
-        for (var i = 0, length = models.length; i < length; i++) {
+        for (i = 0, length = models.length; i < length; i++) {
           attrs = models[i];
 
           // If a duplicate is found, prevent it from being added and
@@ -203,7 +205,7 @@ angular.module('angular.models.core.collection', ['angular.models.exception.vali
 
         // Remove nonexistent models if appropriate.
         if (remove) {
-          for (var i = 0, length = this.length; i < length; i++) {
+          for (i = 0, length = this.length; i < length; i++) {
             if (!modelMap[(model = this.models[i]).cid]) {
               toRemove.push(model);
             }
@@ -220,7 +222,7 @@ angular.module('angular.models.core.collection', ['angular.models.exception.vali
           }
           this.length += toAdd.length;
           if (at != null) {
-            for (var i = 0, length = toAdd.length; i < length; i++) {
+            for (i = 0, length = toAdd.length; i < length; i++) {
               this.models.splice(at + i, 0, toAdd[i]);
             }
           } else {
@@ -228,7 +230,7 @@ angular.module('angular.models.core.collection', ['angular.models.exception.vali
               this.models.length = 0;
             }
             var orderedModels = order || toAdd;
-            for (var i = 0, length = orderedModels.length; i < length; i++) {
+            for (i = 0, length = orderedModels.length; i < length; i++) {
               this.models.push(orderedModels[i]);
             }
           }
@@ -242,7 +244,7 @@ angular.module('angular.models.core.collection', ['angular.models.exception.vali
         // Unless silenced, it's time to fire all appropriate add/sort events.
         if (!options.silent) {
           var addOpts = at != null ? _.clone(options) : options;
-          for (var i = 0, length = toAdd.length; i < length; i++) {
+          for (i = 0, length = toAdd.length; i < length; i++) {
             if (at != null) {
               addOpts.index = at + i;
             }
@@ -594,8 +596,9 @@ angular.module('angular.models.core.collection', ['angular.models.exception.vali
     return BaseCollectionClass;
   });
 
+/** @namespace Core/Models */
 angular.module('angular.models.core.model', ['angular.models.exception.validation', 'angular.models.helper', 'angular.models.core.sync'])
-  .factory('BaseModelClass', function ($q, $parse, Extend, Sync, WrapError, ValidationException, _) {
+  .factory('BaseModelClass', function ($q, $parse, Sync, WrapError, ValidationException, _) {
     'use strict';
 
     var proto;
@@ -603,18 +606,31 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
     /**
      * Throw a change event.
      * @fires BaseModelClass#change
-     *
+     * @memberOf Core/Models
+     */
+
+    /**
      * Throw a sync event.
      * @fires BaseModelClass#sync
-     *
+     * @memberOf Core/Models
+     */
+
+    /**
      * Throw a fetched event.
      * @fires BaseModelClass#fetched
-     *
+     * @memberOf Core/Models
+     */
+
+    /**
      * Throw a destroy event.
      * @fires BaseModelClass#destroy
-     *
+     * @memberOf Core/Models
+     */
+
+     /**
      * Throw a invalid event.
      * @fires BaseModelClass#invalid
+     * @memberOf Core/Models
      */
 
     /**
@@ -622,6 +638,36 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
      * @description This base class represents common methods of a model
      * @param {Object} attributes A model's attributes. A key-value object.
      * @param {Object} options    An options.
+     *
+     * @example
+     * // Defining a Book class
+     * function Book () {
+     *   // Call a cinstructor of a supper class
+     *   BaseModelClass.apply(this, arguments);
+     * };
+     *
+     * Book.prototype = Object.create(BaseModelClass.prototype, {
+     *   // Constructor
+     *   'constructor': {
+     *     value: Book,
+     *     configurable: true,
+     *     writable: true,
+     *     enumerable: true
+     *   },
+     *
+     *   'defaults': {
+     *     value: {
+     *       title: 'Untitled'
+     *     },
+     *     writable: true,
+     *     enumerable: true
+     *   }
+     * });
+     *
+     * var book = new Book({title: 'Sherlock Holmes'});
+     * console.log(book.get('title')); //-> Sherlock Holmes
+     *
+     * @memberOf Core/Models
      */
     function BaseModelClass (attributes, options) {
       var attrs = attributes || {};
@@ -648,9 +694,10 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
 
 
     /**
-     * @property {object} BaseModelClass#changed
+     * @member {object} BaseModelClass#changed
      * @description A hash of attributes whose current and previous value differ.
      * @type {object}
+     * @memberOf Core/Models
      */
     Object.defineProperty(proto, 'changed', {
       value: null,
@@ -659,9 +706,10 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
 
 
     /**
-     * @property {object} BaseModelClass#validationError
+     * @member {object} BaseModelClass#validationError
      * @description The value returned during the last failed validation.
      * @type {object}
+     * @memberOf Core/Models
      */
     Object.defineProperty(proto, 'validationError', {
       value: null,
@@ -670,10 +718,11 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
 
 
     /**
-     * @property {string} BaseModelClass#idAttribute
+     * @member {string} BaseModelClass#idAttribute
      * @description The default name for the JSON `id` attribute is `"id"`. MongoDB and
      *              CouchDB users may want to set this to `"_id"`.
      * @type {string}
+     * @memberOf Core/Models
      */
     Object.defineProperty(proto, 'idAttribute', {
       value: 'id',
@@ -685,6 +734,7 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
      * @function BaseModelClass#initialize
      * @description Initialize is an empty function by default. Override it with your own
      *              initialization logic.
+     * @memberOf Core/Models
      */
     Object.defineProperty(proto, 'initialize', {
       value: _.noop,
@@ -693,9 +743,10 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
 
 
     /**
-     * @property {array} BaseModelClass#serializeModel
+     * @member {array} BaseModelClass#serializeModel
      * @description Holds a list of models which will be included into the model when method 'toJSON' called
      * @type {array}
+     * @memberOf Core/Models
      */
     Object.defineProperty(proto, 'serializeModel', {
       value: [],
@@ -707,6 +758,7 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
      * @function BaseModelClass#toJSON
      * @description  Return a copy of the model's `attributes` object.
      * @return {JSON}
+     * @memberOf Core/Models
      */
     Object.defineProperty(proto, 'toJSON', {
       value: function toJSON () {
@@ -727,7 +779,8 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
     /**
      * @function BaseModelClass#get
      * @description Get the value of an attribute.
-     * @param  {string} attr A field name
+     * @param {string} attr A field name
+     * @memberOf Core/Models
      */
     Object.defineProperty(proto, 'get', {
       value: function get (attr) {
@@ -743,6 +796,7 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
      * @function BaseModelClass#is
      * @param  {string} attr A field name
      * @return {boolean} Returns true if a given field exists in a current instance of BaseModelClass
+     * @memberOf Core/Models
      */
     Object.defineProperty(proto, 'is', {
       value: function is (attr) {
@@ -757,6 +811,7 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
      *              or undefined.
      * @param  {string} attr
      * @return {boolean}
+     * @memberOf Core/Models
      */
     Object.defineProperty(proto, 'has', {
       value: function has (attr) {
@@ -770,6 +825,7 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
      *              the core primitive operation of a model, updating the data and notifying
      *              anyone who needs to know about the change in state. The heart of the beast.
      * @return {BaseModelClass} Return a reference on a current instance of BaseModelClass
+     * @memberOf Core/Models
      */
     Object.defineProperty(proto, 'set', {
       value: function set (key, val, options) {
@@ -869,6 +925,7 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
      * @function BaseModelClass#unset
      * @description Remove an attribute from the model, firing `"change"`. `unset` is a noop
      *              if the attribute doesn't exist.
+     * @memberOf Core/Models
      */
     Object.defineProperty(proto, 'unset', {
       value: function unset (attr, options) {
@@ -880,6 +937,7 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
     /**
      * @function BaseModelClass#clear
      * @description Clear all attributes on the model, firing `"change"`.
+     * @memberOf Core/Models
      */
     Object.defineProperty(proto, 'clear', {
       value: function clear (options) {
@@ -897,6 +955,7 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
      *              If you specify an attribute name, determine if that attribute has changed.
      * @param  {string} attr
      * @return {boolean}
+     * @memberOf Core/Models
      */
     Object.defineProperty(proto, 'hasChanged', {
       value: function hasChanged (attr) {
@@ -918,6 +977,7 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
      *              determining if there *would be* a change.
      * @param  {object} diff
      * @return {object}
+     * @memberOf Core/Models
      */
     Object.defineProperty(proto, 'changedAttributes', {
       value: function changedAttributes (diff) {
@@ -943,6 +1003,7 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
      *              `"change"` event was fired.
      * @param  {string} attr
      * @return {mix}
+     * @memberOf Core/Models
      */
     Object.defineProperty(proto, 'previous', {
       value: function previous (attr) {
@@ -959,6 +1020,7 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
      * @description Get all of the attributes of the model at the time of the previous
      *              <code>change</code> event.
      * @return {object}
+     * @memberOf Core/Models
      */
     Object.defineProperty(proto, 'previousAttributes', {
       value: function previousAttributes () {
@@ -973,6 +1035,7 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
      *              using Backbone's restful methods, override this to change the endpoint
      *              that will be called.
      * @return {string}
+     * @memberOf Core/Models
      */
     Object.defineProperty(proto, 'url', {
       value: function url () {
@@ -993,6 +1056,7 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
     /**
      * @function BaseModelClass#clone
      * @description Creates a new model with identical attributes to this one.
+     * @memberOf Core/Models
      */
     Object.defineProperty(proto, 'clone', {
       value: function clone () {
@@ -1004,6 +1068,7 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
      * @function BaseModelClass#isNew
      * @description A model is new if it has never been saved to the server, and lacks an id.
      * @return {boolean}
+     * @memberOf Core/Models
      */
     Object.defineProperty(proto, 'isNew', {
       value: function isNew () {
@@ -1016,6 +1081,7 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
      * @function BaseModelClass#isValid
      * @description Check if the model is currently in a valid state.
      * @return {boolean}
+     * @memberOf Core/Models
      */
     Object.defineProperty(proto, 'isValid', {
       value: function isValid (options) {
@@ -1027,6 +1093,7 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
     /**
      * @function BaseModelClass#parse
      * @return {object}
+     * @memberOf Core/Models
      */
     Object.defineProperty(proto, 'parse', {
       value: function parse (response) {
@@ -1038,6 +1105,7 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
     /**
      * @function BaseModelClass#save
      * @return {Promise}
+     * @memberOf Core/Models
      */
     Object.defineProperty(proto, 'save', {
       value: function save (options) {
@@ -1072,6 +1140,7 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
      * @function BaseModelClass#fetch
      * @description Fetch the document from the server.
      * @return {Promise}
+     * @memberOf Core/Models
      */
     Object.defineProperty(proto, 'fetch', {
       value: function fetch (options) {
@@ -1097,6 +1166,7 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
      * @function BaseModelClass#destroy
      * @description Destroy this model on the server if it was already persisted.
      * @return {Promise}
+     * @memberOf Core/Models
      */
     Object.defineProperty(proto, 'destroy', {
       value: function destroy (options) {
@@ -1129,6 +1199,7 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
     /**
      * @function BaseModelClass#remove
      * @description Removes a model from a collection if it was exist
+     * @memberOf Core/Models
      */
     Object.defineProperty(proto, 'remove', {
       value: function remove (options) {
@@ -1141,11 +1212,12 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
 
 
     /**
-     * @function BaseModelClass~_validate
+     * @function BaseModelClass#_validate
      * @private
      * @description Run validation against the next complete set of model attributes,
      *              returning `true` if all is well. Otherwise, fire an `"invalid"` event.
      * @return {boolean}
+     * @memberOf Core/Models
      */
     Object.defineProperty(proto, '_validate', {
       value: function _validate (attrs, options) {
@@ -1168,8 +1240,17 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
      * @param {BaseModelClass} model A model
      * @param {mix} changed a changed value
      * @param {object} options An options
+     * @memberOf Core/Models
      */
 
+    /**
+     * @event BaseModelClass#sync
+     * @description A sync event. Fires everytime when a model approaches a server.
+     * @param {string} method HTTP/1.1 methods. GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS etc.
+     * @param {BaseModelClass} model A model where <kbd>sync</kbd> event triggered.
+     * @param {object} options An options
+     * @memberOf Core/Models
+     */
 
     return BaseModelClass;
   });
@@ -1178,16 +1259,18 @@ angular.module('angular.models.core.events', [])
   .service('Events', function (_) {
     'use strict';
 
-
-    // A module that can be mixed in to *any object* in order to provide it with
-    // custom events. You may bind with `on` or remove with `off` callback
-    // functions to an event; `trigger`-ing an event fires all callbacks in
-    // succession.
-    //
-    //     var object = Object.create(Events.prototype);
-    //     object.on('expand', function(){ alert('expanded'); });
-    //     object.trigger('expand');
-    //
+    /**
+     * @class Events
+     * @description A module that can be mixed in to *any object* in order to provide it with
+     *              custom events. You may bind with `on` or remove with `off` callback
+     *              functions to an event; `trigger`-ing an event fires all callbacks in
+     *              succession.
+     *
+     *  @example
+     *  // var object = Object.create(Events.prototype);
+     *  // object.on('expand', function(){ alert('expanded'); });
+     *  // object.trigger('expand');
+     */
     var Events = function () {};
 
     // Regular expression used to split event strings.
@@ -1235,9 +1318,9 @@ angular.module('angular.models.core.events', [])
     // the public API.
     var internalOn = function(obj, name, callback, context, listening) {
       obj._events = eventsApi(onApi, obj._events || {}, name, callback, {
-          context: context,
-          ctx: obj,
-          listening: listening
+        context: context,
+        ctx: obj,
+        listening: listening
       });
 
       if (listening) {
@@ -1322,11 +1405,11 @@ angular.module('angular.models.core.events', [])
     var triggerEvents = function(events, args) {
       var ev, i = -1, l = events.length, a1 = args[0], a2 = args[1], a3 = args[2];
       switch (args.length) {
-        case 0: while (++i < l) { (ev = events[i]).callback.call(ev.ctx); } return;
-        case 1: while (++i < l) { (ev = events[i]).callback.call(ev.ctx, a1); } return;
-        case 2: while (++i < l) { (ev = events[i]).callback.call(ev.ctx, a1, a2); } return;
-        case 3: while (++i < l) { (ev = events[i]).callback.call(ev.ctx, a1, a2, a3); } return;
-        default: while (++i < l) { (ev = events[i]).callback.apply(ev.ctx, args); } return;
+      case 0: while (++i < l) { (ev = events[i]).callback.call(ev.ctx); } return;
+      case 1: while (++i < l) { (ev = events[i]).callback.call(ev.ctx, a1); } return;
+      case 2: while (++i < l) { (ev = events[i]).callback.call(ev.ctx, a1, a2); } return;
+      case 3: while (++i < l) { (ev = events[i]).callback.call(ev.ctx, a1, a2, a3); } return;
+      default: while (++i < l) { (ev = events[i]).callback.apply(ev.ctx, args); } return;
       }
     };
 
@@ -1342,14 +1425,26 @@ angular.module('angular.models.core.events', [])
       return objEvents;
     };
 
-    // Bind an event to a `callback` function. Passing `"all"` will bind
-    // the callback to all events fired.
+    /**
+     * Bind an event to a `callback` function. Passing `"all"` will bind
+     * the callback to all events fired.
+     * @function Events#on
+     * @param  {string}   name     An event name
+     * @param  {Function} callback A callback funciton
+     * @param  {Object}   context  A context
+     */
     Events.prototype.on = function(name, callback, context) {
       return internalOn(this, name, callback, context);
     };
 
-    // Inversion-of-control versions of `on`. Tell *this* object to listen to
-    // an event in another object... keeping track of what it's listening to.
+    /**
+     * Inversion-of-control versions of `on`. Tell *this* object to listen to
+     * an event in another object... keeping track of what it's listening to.
+     * @function Events#listenTo
+     * @param {object} object An object which events to listen
+     * @param {string} name An event name
+     * @param {Function} callback A callback function
+     */
     Events.prototype.listenTo = function(obj, name, callback) {
       if (!obj) { return this; }
       var id = obj._listenId || (obj._listenId = _.uniqueId('l'));
@@ -1375,8 +1470,8 @@ angular.module('angular.models.core.events', [])
     Events.prototype.off = function(name, callback, context) {
       if (!this._events) { return this; }
       this._events = eventsApi(offApi, this._events, name, callback, {
-          context: context,
-          listeners: this._listeners
+        context: context,
+        listeners: this._listeners
       });
       return this;
     };
@@ -1464,6 +1559,7 @@ angular.module('angular.models.core.sync', ['angular.models.helper', 'angular.mo
      *              instead of `application/json` with the model in a param named `model`.
      *              Useful when interfacing with server-side languages like **PHP** that make
      *              it difficult to read the body of `PUT` requests.
+     * @memberOf Core
      */
     function Sync () {}
 
@@ -1476,6 +1572,7 @@ angular.module('angular.models.core.sync', ['angular.models.helper', 'angular.mo
      * @param  {string} method   GET, POST, PUT, DELETE methods
      * @param  {BaseModelClass} model An instance of a BaseModelClass
      * @param  {Object} options An options
+     * @memberOf Core
      * @return {Promise}
      */
     Object.defineProperty(proto, 'sync', {
@@ -1518,19 +1615,20 @@ angular.module('angular.models.core.sync', ['angular.models.helper', 'angular.mo
 angular.module('angular.models.exception.validation', [])
   .factory('ValidationException', function () {
     'use strict';
-    // Represents the exception that occurs
-    // during validation of a data field
+
+    /**
+     * @class ValidationException
+     * @description Represents the exception that occurs during validation of a data field
+     * @augments Error
+     * @param {string} message An error message
+     */
     function ValidationException (message) {
       this.name = 'ValidationError';
       this.message = message;
     }
 
-    var my_favorite_color = "#112C85";
-
-
-
-    ValidationException.prototype = new Error();
-    ValidationException.constructor = ValidationException;
+    ValidationException.prototype = Object.create(Error.prototype);
+    ValidationException.prototype.constructor = ValidationException;
 
     return ValidationException;
   });

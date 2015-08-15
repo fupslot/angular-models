@@ -1,18 +1,18 @@
 {
-	"env": {
-		"browser": true,
-		"node": true,
+  "env": {
+    "browser": true,
+    "node": true,
     "jasmine": true,
     "mocha": true
-	},
+  },
 
-	"globals": {
+  "globals": {
     "angular": false,
     "inject": fasle
-	},
+  },
 
-	"rules": {
-		"camelcase": [2, {"properties": "always"}],
+  "rules": {
+    "camelcase": [2, {"properties": "always"}],
 
     "dot-notation": [2, {"allowPattern": "^[a-z]+((_|-)?[a-z]+)+$"}],
     // disallow trailing commas in object literals
@@ -26,8 +26,10 @@
 
     "linebreak-style": [2, "unix"],
 
-    "semi": [2, "always"]
-	},
+    "semi": [2, "always"],
 
-	"extends": "eslint:recommended"
+    "no-cond-assign": 0
+  },
+
+  "extends": "eslint:recommended"
 }
