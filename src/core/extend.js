@@ -1,8 +1,30 @@
-angular.module('angular.models.core.extend', [])
-  .factory('Extend', function () {
+angular.module('angular.models.core.extend', ['angular.models.helper'])
+  .factory('Extend', function (_) {
     'use strict';
 
-    function Extend (proto) {
+    /**
+     * @class Extend
+     * @memberOf Core
+     *
+     * @example <caption>To make a plain object extendable</caption>
+     * var Base;
+     * var Person;
+     *
+     * Base = _.noop;
+     * Base.extend = Extend;
+     *
+     * Person = Base.extend({
+     *   'print': {
+     *     value: function () {
+     *       return 'Person';
+     *     }
+     *   }
+     * });
+     *
+     * var person = new Person();
+     *
+     */
+    function Extend (proto, statics) {
       var parent = this;
       var child;
 
@@ -15,6 +37,12 @@ angular.module('angular.models.core.extend', [])
       child.prototype = Object.create(parent.prototype, proto);
 
       child.__super__ = parent.prototype;
+
+      if (!_.isEmpty(statics)) {
+        _.each(statics, function (value, key) {
+          child[key] = value;
+        });
+      }
 
       return child;
     }

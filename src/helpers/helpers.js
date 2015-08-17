@@ -1,11 +1,9 @@
 angular.module('angular.models.helper', ['angular.models.core.model'])
   // Lodash reference
-  .factory('_', ['$window',
-    function ($window) {
-      'use strict';
-      return $window._;
-    }
-  ])
+  .factory('_', function ($window) {
+    'use strict';
+    return $window._;
+  })
 
   .factory('isModel', function (BaseModelClass){
     'use strict';
