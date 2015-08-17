@@ -1,5 +1,5 @@
-angular.module('angular.models.core.events', [])
-  .service('Events', function (_) {
+angular.module('angular.models.core.events', ['angular.models.core.extend'])
+  .service('Events', function (Extend, _) {
     'use strict';
 
     /**
@@ -8,11 +8,22 @@ angular.module('angular.models.core.events', [])
      *              custom events. You may bind with `on` or remove with `off` callback
      *              functions to an event; `trigger`-ing an event fires all callbacks in
      *              succession.
+     * @memberOf Core
+     * @example <caption>Define a custom class based on Events</caption>
+     * var MyObject = Events.extend({
+     *   'doSomething': {
+     *     value: function () {
+     *       this.trigger('custom', this);
+     *     }
+     *   }
+     * });
      *
-     *  @example
-     *  // var object = Object.create(Events.prototype);
-     *  // object.on('expand', function(){ alert('expanded'); });
-     *  // object.trigger('expand');
+     * var myObject = new MyObject();
+     * myObject.on('custom', function (self) {
+     *   console.log('the custom event has been triggered');
+     * });
+     *
+     * myObject.doSomething(); // this will trigger the custom event
      */
     var Events = function () {};
 
@@ -175,6 +186,8 @@ angular.module('angular.models.core.events', [])
      * @param  {string}   name     An event name
      * @param  {Function} callback A callback funciton
      * @param  {Object}   context  A context
+     * @return {Events}
+     * @memberOf Core
      */
     Events.prototype.on = function(name, callback, context) {
       return internalOn(this, name, callback, context);
@@ -187,6 +200,8 @@ angular.module('angular.models.core.events', [])
      * @param {object} object An object which events to listen
      * @param {string} name An event name
      * @param {Function} callback A callback function
+     * @return {Events}
+     * @memberOf Core
      */
     Events.prototype.listenTo = function(obj, name, callback) {
       if (!obj) { return this; }
@@ -206,10 +221,19 @@ angular.module('angular.models.core.events', [])
       return this;
     };
 
-    // Remove one or many callbacks. If `context` is null, removes all
-    // callbacks with that function. If `callback` is null, removes all
-    // callbacks for the event. If `name` is null, removes all bound
-    // callbacks for all events.
+
+    /**
+     * @function Events#off
+     * @description Remove one or many callbacks. If `context` is null, removes all
+     *              callbacks with that function. If `callback` is null, removes all
+     *              callbacks for the event. If `name` is null, removes all bound
+     *              callbacks for all events.
+     * @param  {String}   name     An event name
+     * @param  {Function} callback An event handler
+     * @param  {Mix}      context  An event handler's context
+     * @return {Events}
+     * @memberOf Core
+     */
     Events.prototype.off = function(name, callback, context) {
       if (!this._events) { return this; }
       this._events = eventsApi(offApi, this._events, name, callback, {
@@ -219,8 +243,16 @@ angular.module('angular.models.core.events', [])
       return this;
     };
 
-    // Tell this object to stop listening to either specific events ... or
-    // to every object it's currently listening to.
+    /**
+     * @function Events#stopListening
+     * @description Tell this object to stop listening to either specific events ... or
+     *              to every object it's currently listening to.
+     * @param  {Object}   obj      An object whose an event should be stopped listen.
+     * @param  {String}   name     An event name
+     * @param  {Function} callback An event handler
+     * @return {Events}
+     * @memberOf Core
+     */
     Events.prototype.stopListening = function(obj, name, callback) {
       var listeningTo = this._listeningTo;
       if (!listeningTo) { return this; }
@@ -241,27 +273,51 @@ angular.module('angular.models.core.events', [])
       return this;
     };
 
-    // Bind an event to only be triggered a single time. After the first time
-    // the callback is invoked, it will be removed. When multiple events are
-    // passed in using the space-separated syntax, the event will fire once for every
-    // event you passed in, not once for a combination of all events
+
+    /**
+     * @function Events#once
+     * @description Bind an event to only be triggered a single time. After the first time
+     *              the callback is invoked, it will be removed. When multiple events are
+     *              passed in using the space-separated syntax, the event will fire once for every
+     *              event you passed in, not once for a combination of all events
+     * @param  {String}   name     An event name
+     * @param  {Function} callback An event handler
+     * @param  {Mix}      context  An event handler's context
+     * @return {Events}
+     * @memberOf Core
+     */
     Events.prototype.once = function(name, callback, context) {
       // Map the event into a `{event: once}` object.
       var events = eventsApi(onceMap, {}, name, callback, _.bind(this.off, this));
       return this.on(events, void 0, context);
     };
 
-    // Inversion-of-control versions of `once`.
+    //
+    /**
+     * @function Events#listenToOnce
+     * @description Inversion-of-control versions of `once`.
+     * @param  {String}   name     An event name
+     * @param  {Function} callback An event handler
+     * @param  {Mix}      context  An event handler's context
+     * @return {Events}
+     */
     Events.prototype.listenToOnce = function(obj, name, callback) {
       // Map the event into a `{event: once}` object.
       var events = eventsApi(onceMap, {}, name, callback, _.bind(this.stopListening, this, obj));
       return this.listenTo(obj, events);
     };
 
-    // Trigger one or many events, firing all bound callbacks. Callbacks are
-    // passed the same arguments as `trigger` is, apart from the event name
-    // (unless you're listening on `"all"`, which will cause your callback to
-    // receive the true name of the event as the first argument).
+    /**
+     * @function Events#trigger
+     * @description Trigger one or many events, firing all bound callbacks. Callbacks are
+     *              passed the same arguments as `trigger` is, apart from the event name
+     *              (unless you're listening on `"all"`, which will cause your callback to
+     *              receive the true name of the event as the first argument).
+     * @param  {String} name An event name
+     * @param  {Mix[]}  args An event arguments
+     * @return {Events}
+     * @memberOf Core
+     */
     Events.prototype.trigger = function(name) {
       if (!this._events) { return this; }
 
@@ -274,8 +330,28 @@ angular.module('angular.models.core.events', [])
     };
 
     // Aliases for backwards compatibility.
+    // NOTE: Deprecated
+    /**
+     * @function Events#bind
+     * @deprecated Will be removed soon
+     * @memberOf Core
+     */
     Events.prototype.bind = Events.prototype.on;
+    /**
+     * @function Events#unbind
+     * @deprecated Will be removed soon
+     * @memberOf Core
+     */
     Events.prototype.unbind = Events.prototype.off;
+
+    /**
+     * @function Events~extend
+     * @param {Object} proto An object whose own enumerable properties
+     *                 constitute descriptors for the properties to be defined or modified.
+     *                 See {@link Extend}
+     * @memberOf Core
+     */
+    Events.extend = Extend;
 
     return Events;
   });

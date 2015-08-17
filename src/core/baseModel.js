@@ -41,27 +41,12 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
      * @param {Object} attributes A model's attributes. A key-value object.
      * @param {Object} options    An options.
      *
-     * @example
-     * // Defining a Book class
-     * function Book () {
-     *   // Call a cinstructor of a supper class
-     *   BaseModelClass.apply(this, arguments);
-     * };
-     *
-     * Book.prototype = Object.create(BaseModelClass.prototype, {
-     *   // Constructor
-     *   'constructor': {
-     *     value: Book,
-     *     configurable: true,
-     *     writable: true,
-     *     enumerable: true
-     *   },
-     *
+     * @example <caption>Defining a Book class</caption>
+     * var Book = BaseModelClass.extend({
      *   'defaults': {
      *     value: {
-     *       title: 'Untitled'
+     *       title: Untitled book
      *     },
-     *     writable: true,
      *     enumerable: true
      *   }
      * });
@@ -69,6 +54,39 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
      * var book = new Book({title: 'Sherlock Holmes'});
      * console.log(book.get('title')); //-> Sherlock Holmes
      *
+     * @example <caption>Defining a Book class with a custom constrictor, custom accessors and default attributes</caption>
+     * var Book = BaseModelClass.extend({
+     *   'defaults': {
+     *     value: {
+     *       title: 'Untitled book'
+     *     }
+     *   },
+     *
+     *   constructor: {
+     *     value: function () {
+     *       // do somethig before the super class constructor call
+     *
+     *       // If the constructor was re-defined, you must
+     *       // call the super class constructor manually
+     *       BaseModelClass.apply(this, arguments);
+     *
+     *       // do somethig after the super class constructor call
+     *     }
+     *   },
+     *
+     *   title: {
+     *     get: function () {
+     *       return this.get('title');
+     *     },
+     *     set: function(value) {
+     *       this.set('title', value);
+     *     },
+     *     enumerable: true
+     *   }
+     * });
+     *
+     * var book = new Book({title: 'Sherlock Holmes'});
+     * console.log(book.title); //-> Sherlock Holmes
      * @memberOf Core/Models
      */
     function BaseModelClass (attributes, options) {
@@ -223,9 +241,11 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
 
     /**
      * @function BaseModelClass#set
-     * @description Set a hash of model attributes on the object, firing `"change"`. This is
-     *              the core primitive operation of a model, updating the data and notifying
-     *              anyone who needs to know about the change in state. The heart of the beast.
+     * @description Set a hash of attributes (one or many) on the model.
+     *              If any of the attributes change the model's state, a "change" event
+     *              will be triggered on the model. Change events for specific attributes
+     *              are also triggered, and you can bind to those as well,
+     *              for example: change:title, and change:content. You may also pass individual keys and values.
      * @return {BaseModelClass} Return a reference on a current instance of BaseModelClass
      * @memberOf Core/Models
      */
@@ -638,11 +658,25 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
 
     /**
      * @event BaseModelClass#change
-     * @description A change event.
+     * @description Occured when one ore many attributes set on the model by using {@link: BaseModelClass#set}.
+     *              You can also monitor a change event for specific attributes, for example:
+     *              change:title (where title is an attribute)
      * @param {BaseModelClass} model A model
      * @param {mix} changed a changed value
      * @param {object} options An options
      * @memberOf Core/Models
+     *
+     * @example <caption>Listening a change event on the model</caption>
+     * //
+     * model.on('change', function (model, attrs, options) {
+     *   console.log('changed attributes, %s', attrs);
+     * });
+     *
+     * @example <caption>Listening a change event for a specific attribute</caption>
+     * //
+     * model.on('change:title', function (model, attrs, options) {
+     *   console.log('changed attributes, %s', attrs);
+     * });
      */
 
     /**

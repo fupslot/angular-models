@@ -1,5 +1,8 @@
 'use strict';
-/** @namespace Core */
+/**
+ * @namespace Core
+ * @description Namespace Core.
+ */
 angular.module('angular.models', [
   'angular.models.core.extend',
   'angular.models.core.sync',

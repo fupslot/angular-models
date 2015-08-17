@@ -1,6 +1,9 @@
 (function(angular) {
 'use strict';
-/** @namespace Core */
+/**
+ * @namespace Core
+ * @description Namespace Core.
+ */
 angular.module('angular.models', [
   'angular.models.core.extend',
   'angular.models.core.sync',
@@ -642,27 +645,12 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
      * @param {Object} attributes A model's attributes. A key-value object.
      * @param {Object} options    An options.
      *
-     * @example
-     * // Defining a Book class
-     * function Book () {
-     *   // Call a cinstructor of a supper class
-     *   BaseModelClass.apply(this, arguments);
-     * };
-     *
-     * Book.prototype = Object.create(BaseModelClass.prototype, {
-     *   // Constructor
-     *   'constructor': {
-     *     value: Book,
-     *     configurable: true,
-     *     writable: true,
-     *     enumerable: true
-     *   },
-     *
+     * @example <caption>Defining a Book class</caption>
+     * var Book = BaseModelClass.extend({
      *   'defaults': {
      *     value: {
-     *       title: 'Untitled'
+     *       title: Untitled book
      *     },
-     *     writable: true,
      *     enumerable: true
      *   }
      * });
@@ -670,6 +658,39 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
      * var book = new Book({title: 'Sherlock Holmes'});
      * console.log(book.get('title')); //-> Sherlock Holmes
      *
+     * @example <caption>Defining a Book class with a custom constrictor, custom accessors and default attributes</caption>
+     * var Book = BaseModelClass.extend({
+     *   'defaults': {
+     *     value: {
+     *       title: 'Untitled book'
+     *     }
+     *   },
+     *
+     *   constructor: {
+     *     value: function () {
+     *       // do somethig before the super class constructor call
+     *
+     *       // If the constructor was re-defined, you must
+     *       // call the super class constructor manually
+     *       BaseModelClass.apply(this, arguments);
+     *
+     *       // do somethig after the super class constructor call
+     *     }
+     *   },
+     *
+     *   title: {
+     *     get: function () {
+     *       return this.get('title');
+     *     },
+     *     set: function(value) {
+     *       this.set('title', value);
+     *     },
+     *     enumerable: true
+     *   }
+     * });
+     *
+     * var book = new Book({title: 'Sherlock Holmes'});
+     * console.log(book.title); //-> Sherlock Holmes
      * @memberOf Core/Models
      */
     function BaseModelClass (attributes, options) {
@@ -824,9 +845,11 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
 
     /**
      * @function BaseModelClass#set
-     * @description Set a hash of model attributes on the object, firing `"change"`. This is
-     *              the core primitive operation of a model, updating the data and notifying
-     *              anyone who needs to know about the change in state. The heart of the beast.
+     * @description Set a hash of attributes (one or many) on the model.
+     *              If any of the attributes change the model's state, a "change" event
+     *              will be triggered on the model. Change events for specific attributes
+     *              are also triggered, and you can bind to those as well,
+     *              for example: change:title, and change:content. You may also pass individual keys and values.
      * @return {BaseModelClass} Return a reference on a current instance of BaseModelClass
      * @memberOf Core/Models
      */
@@ -1239,11 +1262,25 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
 
     /**
      * @event BaseModelClass#change
-     * @description A change event.
+     * @description Occured when one ore many attributes set on the model by using {@link: BaseModelClass#set}.
+     *              You can also monitor a change event for specific attributes, for example:
+     *              change:title (where title is an attribute)
      * @param {BaseModelClass} model A model
      * @param {mix} changed a changed value
      * @param {object} options An options
      * @memberOf Core/Models
+     *
+     * @example <caption>Listening a change event on the model</caption>
+     * //
+     * model.on('change', function (model, attrs, options) {
+     *   console.log('changed attributes, %s', attrs);
+     * });
+     *
+     * @example <caption>Listening a change event for a specific attribute</caption>
+     * //
+     * model.on('change:title', function (model, attrs, options) {
+     *   console.log('changed attributes, %s', attrs);
+     * });
      */
 
     /**
@@ -1261,8 +1298,8 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
     return BaseModelClass;
   });
 
-angular.module('angular.models.core.events', [])
-  .service('Events', function (_) {
+angular.module('angular.models.core.events', ['angular.models.core.extend'])
+  .service('Events', function (Extend, _) {
     'use strict';
 
     /**
@@ -1271,11 +1308,22 @@ angular.module('angular.models.core.events', [])
      *              custom events. You may bind with `on` or remove with `off` callback
      *              functions to an event; `trigger`-ing an event fires all callbacks in
      *              succession.
+     * @memberOf Core
+     * @example <caption>Define a custom class based on Events</caption>
+     * var MyObject = Events.extend({
+     *   'doSomething': {
+     *     value: function () {
+     *       this.trigger('custom', this);
+     *     }
+     *   }
+     * });
      *
-     *  @example
-     *  // var object = Object.create(Events.prototype);
-     *  // object.on('expand', function(){ alert('expanded'); });
-     *  // object.trigger('expand');
+     * var myObject = new MyObject();
+     * myObject.on('custom', function (self) {
+     *   console.log('the custom event has been triggered');
+     * });
+     *
+     * myObject.doSomething(); // this will trigger the custom event
      */
     var Events = function () {};
 
@@ -1438,6 +1486,8 @@ angular.module('angular.models.core.events', [])
      * @param  {string}   name     An event name
      * @param  {Function} callback A callback funciton
      * @param  {Object}   context  A context
+     * @return {Events}
+     * @memberOf Core
      */
     Events.prototype.on = function(name, callback, context) {
       return internalOn(this, name, callback, context);
@@ -1450,6 +1500,8 @@ angular.module('angular.models.core.events', [])
      * @param {object} object An object which events to listen
      * @param {string} name An event name
      * @param {Function} callback A callback function
+     * @return {Events}
+     * @memberOf Core
      */
     Events.prototype.listenTo = function(obj, name, callback) {
       if (!obj) { return this; }
@@ -1469,10 +1521,19 @@ angular.module('angular.models.core.events', [])
       return this;
     };
 
-    // Remove one or many callbacks. If `context` is null, removes all
-    // callbacks with that function. If `callback` is null, removes all
-    // callbacks for the event. If `name` is null, removes all bound
-    // callbacks for all events.
+
+    /**
+     * @function Events#off
+     * @description Remove one or many callbacks. If `context` is null, removes all
+     *              callbacks with that function. If `callback` is null, removes all
+     *              callbacks for the event. If `name` is null, removes all bound
+     *              callbacks for all events.
+     * @param  {String}   name     An event name
+     * @param  {Function} callback An event handler
+     * @param  {Mix}      context  An event handler's context
+     * @return {Events}
+     * @memberOf Core
+     */
     Events.prototype.off = function(name, callback, context) {
       if (!this._events) { return this; }
       this._events = eventsApi(offApi, this._events, name, callback, {
@@ -1482,8 +1543,16 @@ angular.module('angular.models.core.events', [])
       return this;
     };
 
-    // Tell this object to stop listening to either specific events ... or
-    // to every object it's currently listening to.
+    /**
+     * @function Events#stopListening
+     * @description Tell this object to stop listening to either specific events ... or
+     *              to every object it's currently listening to.
+     * @param  {Object}   obj      An object whose an event should be stopped listen.
+     * @param  {String}   name     An event name
+     * @param  {Function} callback An event handler
+     * @return {Events}
+     * @memberOf Core
+     */
     Events.prototype.stopListening = function(obj, name, callback) {
       var listeningTo = this._listeningTo;
       if (!listeningTo) { return this; }
@@ -1504,27 +1573,51 @@ angular.module('angular.models.core.events', [])
       return this;
     };
 
-    // Bind an event to only be triggered a single time. After the first time
-    // the callback is invoked, it will be removed. When multiple events are
-    // passed in using the space-separated syntax, the event will fire once for every
-    // event you passed in, not once for a combination of all events
+
+    /**
+     * @function Events#once
+     * @description Bind an event to only be triggered a single time. After the first time
+     *              the callback is invoked, it will be removed. When multiple events are
+     *              passed in using the space-separated syntax, the event will fire once for every
+     *              event you passed in, not once for a combination of all events
+     * @param  {String}   name     An event name
+     * @param  {Function} callback An event handler
+     * @param  {Mix}      context  An event handler's context
+     * @return {Events}
+     * @memberOf Core
+     */
     Events.prototype.once = function(name, callback, context) {
       // Map the event into a `{event: once}` object.
       var events = eventsApi(onceMap, {}, name, callback, _.bind(this.off, this));
       return this.on(events, void 0, context);
     };
 
-    // Inversion-of-control versions of `once`.
+    //
+    /**
+     * @function Events#listenToOnce
+     * @description Inversion-of-control versions of `once`.
+     * @param  {String}   name     An event name
+     * @param  {Function} callback An event handler
+     * @param  {Mix}      context  An event handler's context
+     * @return {Events}
+     */
     Events.prototype.listenToOnce = function(obj, name, callback) {
       // Map the event into a `{event: once}` object.
       var events = eventsApi(onceMap, {}, name, callback, _.bind(this.stopListening, this, obj));
       return this.listenTo(obj, events);
     };
 
-    // Trigger one or many events, firing all bound callbacks. Callbacks are
-    // passed the same arguments as `trigger` is, apart from the event name
-    // (unless you're listening on `"all"`, which will cause your callback to
-    // receive the true name of the event as the first argument).
+    /**
+     * @function Events#trigger
+     * @description Trigger one or many events, firing all bound callbacks. Callbacks are
+     *              passed the same arguments as `trigger` is, apart from the event name
+     *              (unless you're listening on `"all"`, which will cause your callback to
+     *              receive the true name of the event as the first argument).
+     * @param  {String} name An event name
+     * @param  {Mix[]}  args An event arguments
+     * @return {Events}
+     * @memberOf Core
+     */
     Events.prototype.trigger = function(name) {
       if (!this._events) { return this; }
 
@@ -1537,8 +1630,28 @@ angular.module('angular.models.core.events', [])
     };
 
     // Aliases for backwards compatibility.
+    // NOTE: Deprecated
+    /**
+     * @function Events#bind
+     * @deprecated Will be removed soon
+     * @memberOf Core
+     */
     Events.prototype.bind = Events.prototype.on;
+    /**
+     * @function Events#unbind
+     * @deprecated Will be removed soon
+     * @memberOf Core
+     */
     Events.prototype.unbind = Events.prototype.off;
+
+    /**
+     * @function Events~extend
+     * @param {Object} proto An object whose own enumerable properties
+     *                 constitute descriptors for the properties to be defined or modified.
+     *                 See {@link Extend}
+     * @memberOf Core
+     */
+    Events.extend = Extend;
 
     return Events;
   });

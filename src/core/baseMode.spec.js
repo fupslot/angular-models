@@ -33,43 +33,56 @@ describe('Core: BaseModelClass', function () {
   });
 
   describe('Extendable', function () {
-    var PersonCls;
-    var person;
+    var BookCls;
+    var book;
 
     beforeEach(function () {
       // Defining a Person class
-      PersonCls = BaseModelClass.extend({
-        defaults: {
+      BookCls = BaseModelClass.extend({
+        'defaults': {
           value: {
-            name: 'Unknown'
+            title: 'Untitled book'
           }
         },
-        name: {
-          get: function () {
-            return this.get('name');
-          },
-          set: function (value) {
-            this.set('name', value);
+
+        constructor: {
+          value: function () {
+            // do somethig before the super class constructor call
+
+            // Call the super class constructor
+            BaseModelClass.apply(this, arguments);
+
+            // do somethig after the super class constructor call
           }
+        },
+
+        title: {
+          get: function () {
+            return this.get('title');
+          },
+          set: function(value) {
+            this.set('title', value);
+          },
+          enumerable: true
         }
       });
     });
 
     it('default definition', function () {
-      person = new PersonCls();
-      expect(person.get('name')).toEqual('Unknown');
+      book = new BookCls();
+      expect(book.get('title')).toEqual('Untitled book');
     });
 
     it('custom definition', function () {
-      person = new PersonCls({name: 'Eugene'});
-      expect(person.get('name')).toEqual('Eugene');
+      book = new BookCls({title: 'Sherlock Holmes'});
+      expect(book.get('title')).toEqual('Sherlock Holmes');
     });
 
     it('use custom accessors', function () {
-      person = new PersonCls({name: 'Eugene'});
-      expect(person.name).toEqual('Eugene');
-      person.name = 'Paul';
-      expect(person.name).toEqual('Paul');
+      book = new BookCls();
+      expect(book.title).toEqual('Untitled book');
+      book.title = 'Sherlock Holmes';
+      expect(book.title).toEqual('Sherlock Holmes');
     });
   });
 
