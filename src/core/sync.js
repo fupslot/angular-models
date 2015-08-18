@@ -38,6 +38,8 @@ angular.module('angular.models.core.sync', ['angular.models.helper', 'angular.mo
      */
     Object.defineProperty(proto, 'sync', {
       value: function (method, model, options) {
+        var dynamicQueryParams = {};
+
         // Default options, unless specified.
         _.defaults(options || (options = {}));
 
@@ -53,7 +55,14 @@ angular.module('angular.models.core.sync', ['angular.models.helper', 'angular.mo
           throw new Error('A "url" property or function must be specified');
         }
 
-        // if (options.params)
+        // Obtains a dynamic query params,
+        // NOTE: must solve angular circular dependency issue
+        // if (isModel(model)) {
+        if (model.getQueryParams) {
+          dynamicQueryParams = model.getQueryParams();
+        }
+        // Query params
+        params.params = _.extend({}, params.params, dynamicQueryParams);
 
         // Ensure that we have the appropriate request data.
         if (options.data == null && model && _.include(['POST', 'PUT', 'PATCH'], method)) {

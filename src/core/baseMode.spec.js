@@ -1,11 +1,14 @@
 describe('Core: BaseModelClass', function () {
   'use strict';
+
+  var $httpBackend;
   var BaseModelClass, Events, Sync;
 
   // load the directive's module and view
   beforeEach(module('angular.models'));
 
-  beforeEach(inject(function (_BaseModelClass_, _Events_, _Sync_) {
+  beforeEach(inject(function (_BaseModelClass_, _Events_, _Sync_, _$httpBackend_) {
+    $httpBackend = _$httpBackend_;
     BaseModelClass = _BaseModelClass_;
     Events = _Events_;
     Sync = _Sync_;
@@ -88,14 +91,7 @@ describe('Core: BaseModelClass', function () {
 
   describe('Base Model', function() {
     var Person;
-    var $httpBackend;
-    var BaseModelClass;
     var responseSpy;
-
-    beforeEach(inject(function(_$httpBackend_, _BaseModelClass_){
-      $httpBackend = _$httpBackend_;
-      BaseModelClass = _BaseModelClass_;
-    }));
 
     beforeEach(function () {
       responseSpy = jasmine.createSpy('responseSpy');
@@ -138,6 +134,103 @@ describe('Core: BaseModelClass', function () {
       $httpBackend.flush();
       expect(responseSpy).toHaveBeenCalled();
       expect(person.get('name')).toEqual('Eugene Brodsky');
+    });
+
+    describe('query params', function() {
+
+      describe('should be able to set it', function(){
+        var person;
+
+        beforeEach(function(){
+          person = new Person();
+        });
+
+        it('over the fetch function', function () {
+          $httpBackend.expectGET('/persons/1?id=1')
+            .respond({id: 1, name: 'Eugene'});
+
+          person.set('id', 1);
+          person.fetch({params: {id: 1}});
+          $httpBackend.flush();
+
+          expect(person.get('name')).toEqual('Eugene');
+        });
+
+        it('over the save function', function(){
+          $httpBackend.expectPOST('/persons?a=a&b=b')
+            .respond({id: 1, name: 'Eugene'});
+
+          person.save({params: {a: 'a', b: 'b'}});
+          $httpBackend.flush();
+          expect(person.get('name')).toEqual('Eugene');
+        });
+
+        it('over the destroy function', function(){
+          $httpBackend.expectDELETE('/persons/1?a=a&b=b')
+            .respond(204, '');
+
+          // Pretends that an instance of a Person class has some data
+          person.set('id', 1);
+
+          person.destroy({params: {a: 'a', b: 'b'}});
+          $httpBackend.flush();
+          expect(person.get('name')).toBeUndefined();
+        });
+      });
+
+      describe('should be able to', function(){
+        var person, Person;
+
+        beforeEach(function(){
+          Person = BaseModelClass.extend({
+            urlRoot: {
+              value: '/persons'
+            },
+            // Make it as default attributes
+            _queryParams: {
+              value: {
+                'id': '@id',
+                'a': function(key){
+                  return key;
+                }
+              }
+            }
+          });
+        });
+
+        beforeEach(function(){
+          person = new Person({id: 1, name: 'Eugene'});
+        });
+
+        it('pre-define it', function() {
+          expect(person.getQueryParams()).toEqual({id: 1, a: 'a'});
+          $httpBackend.expectGET('/persons/1?a=a&id=1')
+            .respond({id: 1, name: 'Eugene'});
+          person.fetch();
+          $httpBackend.flush();
+          expect(person.get('name')).toEqual('Eugene');
+        });
+
+        it('set dynamicaly', function(){
+          person.setQueryParam('b', 'b');
+          expect(person.getQueryParams()).toEqual({id: 1, a: 'a', 'b': 'b'});
+          $httpBackend.expectGET('/persons/1?a=a&b=b&id=1')
+            .respond({id: 1, name: 'Eugene'});
+          person.fetch();
+          $httpBackend.flush();
+          expect(person.get('name')).toEqual('Eugene');
+        });
+
+        it('unset dynamicaly', function(){
+          person.setQueryParam('id', null);
+          expect(person.getQueryParams()).toEqual({a: 'a'});
+          $httpBackend.expectGET('/persons/1?a=a')
+            .respond({id: 1, name: 'Eugene'});
+          person.fetch();
+          $httpBackend.flush();
+          expect(person.get('name')).toEqual('Eugene');
+        });
+      });
     });
   });
 });

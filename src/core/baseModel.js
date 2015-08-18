@@ -112,6 +112,15 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
 
     proto = BaseModelClass.prototype = Object.create(Sync.prototype);
 
+    /**
+     * @member {Array} BaseModelClass#_queryParams
+     * @description A hash of query parameters.
+     * @type {Array}
+     * @memberOf Core/Models
+     */
+    Object.defineProperty(proto, '_queryParams', {
+      value: {}
+    });
 
     /**
      * @member {object} BaseModelClass#changed
@@ -592,7 +601,7 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
      */
     Object.defineProperty(proto, 'destroy', {
       value: function destroy (options) {
-        options = options || {};
+        options = _.extend({}, options);
         var model = this;
 
         var destroy = function() {
@@ -632,6 +641,47 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
       }
     });
 
+
+    /**
+     * @function BaseModelClass#setQueryParam
+     * @param  {String} key    A parameter's name
+     * @param  {Mix} value     A parameter's value
+     * @memberOf BaseModelClass
+     */
+    Object.defineProperty(proto, 'setQueryParam', {
+      value: function (key, value) {
+        if (value != null) {
+          this._queryParams[key] = value;
+        }
+        else {
+          delete this._queryParams[key];
+        }
+      }
+    });
+
+    /**
+     * @function BaseModelClass#getQueryParams
+     * @description Returns a key-value object which containing a query parameters
+     * @return {Object}
+     * @memberOf Core/Models
+     */
+    Object.defineProperty(proto, 'getQueryParams', {
+      value: function () {
+        var values = {};
+        _.each(this._queryParams, function(value, key) {
+          // {'a': 'a'}
+          if (!_.isFunction(value)) {
+            values[key] = _.isParam(value) ? this.get(key) : key;
+          }
+          // [{a: 1}]
+          if (_.isFunction(value)) {
+            values[key] = value.call(this, key);
+          }
+        }, this);
+
+        return values;
+      }
+    });
 
     /**
      * @function BaseModelClass#_validate

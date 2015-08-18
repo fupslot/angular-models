@@ -1,9 +1,21 @@
 angular.module('angular.models.helper', ['angular.models.core.model'])
   // Lodash reference
-  .factory('_', function ($window) {
-    'use strict';
-    return $window._;
-  })
+  .factory('_', ['$window',
+    function ($window) {
+      'use strict';
+      var _ = $window._;
+
+      _.mixin({
+        // todo: replace by contain function
+        'isParam': function(name) {
+          if (!_.isString(name)) { return false; }
+          return name.indexOf('@') === 0;
+        }
+      });
+
+      return _;
+    }
+  ])
 
   .factory('isModel', function (BaseModelClass){
     'use strict';
