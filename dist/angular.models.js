@@ -716,6 +716,42 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
 
     proto = BaseModelClass.prototype = Object.create(Sync.prototype);
 
+    /**
+     * @member {Array} BaseModelClass#defaultQueryParams
+     * @description A hash of query parameters.
+     * @type {Array}
+     * @memberOf Core/Models
+     *
+     * @example <caption>Define a custom model with a set of query params</caption>
+     * var MyModel = BaseModelClass.extend({
+     *   defaultQueryParams: {
+     *     value: {
+     *       // Symbol '@' tells to a model to extract
+     *       // a parameter's value from a model's attribute set
+     *       'id': '@id',
+     *       // Defining a static parameter 'type' with a value 'single'
+     *       'type': 'single',
+     *       // Defining a dynamic parameter 'sort' with a custom logic
+     *       'sort': function() {
+     *         // this - reference to a current model's instance
+     *         if (this.get('sort') === true) {
+     *           return 'abc';
+     *         }
+     *         else {
+     *           return 'desc';
+     *         }
+     *       }
+     *     }
+     *   }
+     * });
+     *
+     * var myModel = new MyModel();
+     *
+     *
+     */
+    Object.defineProperty(proto, 'defaultQueryParams', {
+      value: {}
+    });
 
     /**
      * @member {object} BaseModelClass#changed
@@ -1196,7 +1232,7 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
      */
     Object.defineProperty(proto, 'destroy', {
       value: function destroy (options) {
-        options = options || {};
+        options = _.extend({}, options);
         var model = this;
 
         var destroy = function() {
@@ -1236,6 +1272,47 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
       }
     });
 
+
+    /**
+     * @function BaseModelClass#setQueryParam
+     * @param  {String} key    A parameter's name
+     * @param  {Mix} value     A parameter's value
+     * @memberOf BaseModelClass
+     */
+    Object.defineProperty(proto, 'setQueryParam', {
+      value: function (key, value) {
+        if (value != null) {
+          this.defaultQueryParams[key] = value;
+        }
+        else {
+          delete this.defaultQueryParams[key];
+        }
+      }
+    });
+
+    /**
+     * @function BaseModelClass#getQueryParams
+     * @description Returns a key-value object which containing a query parameters
+     * @return {Object}
+     * @memberOf Core/Models
+     */
+    Object.defineProperty(proto, 'getQueryParams', {
+      value: function () {
+        var values = {};
+        _.each(this.defaultQueryParams, function(value, key) {
+          // {'a': 'a'}
+          if (!_.isFunction(value)) {
+            values[key] = _.isParam(value) ? this.get(key) : key;
+          }
+          // [{a: 1}]
+          if (_.isFunction(value)) {
+            values[key] = value.call(this, key);
+          }
+        }, this);
+
+        return values;
+      }
+    });
 
     /**
      * @function BaseModelClass#_validate
@@ -1656,11 +1733,33 @@ angular.module('angular.models.core.events', ['angular.models.core.extend'])
     return Events;
   });
 
-angular.module('angular.models.core.extend', [])
-  .factory('Extend', function () {
+angular.module('angular.models.core.extend', ['angular.models.helper'])
+  .factory('Extend', function (_) {
     'use strict';
 
-    function Extend (proto) {
+    /**
+     * @class Extend
+     * @memberOf Core
+     *
+     * @example <caption>To make a plain object extendable</caption>
+     * var Base;
+     * var Person;
+     *
+     * Base = _.noop;
+     * Base.extend = Extend;
+     *
+     * Person = Base.extend({
+     *   'print': {
+     *     value: function () {
+     *       return 'Person';
+     *     }
+     *   }
+     * });
+     *
+     * var person = new Person();
+     *
+     */
+    function Extend (proto, statics) {
       var parent = this;
       var child;
 
@@ -1673,6 +1772,12 @@ angular.module('angular.models.core.extend', [])
       child.prototype = Object.create(parent.prototype, proto);
 
       child.__super__ = parent.prototype;
+
+      if (!_.isEmpty(statics)) {
+        _.each(statics, function (value, key) {
+          child[key] = value;
+        });
+      }
 
       return child;
     }
@@ -1720,6 +1825,8 @@ angular.module('angular.models.core.sync', ['angular.models.helper', 'angular.mo
      */
     Object.defineProperty(proto, 'sync', {
       value: function (method, model, options) {
+        var dynamicQueryParams = {};
+
         // Default options, unless specified.
         _.defaults(options || (options = {}));
 
@@ -1735,7 +1842,14 @@ angular.module('angular.models.core.sync', ['angular.models.helper', 'angular.mo
           throw new Error('A "url" property or function must be specified');
         }
 
-        // if (options.params)
+        // Obtains a dynamic query params,
+        // NOTE: must solve angular circular dependency issue
+        // if (isModel(model)) {
+        if (model.getQueryParams) {
+          dynamicQueryParams = model.getQueryParams();
+        }
+        // Query params
+        params.params = _.extend({}, params.params, dynamicQueryParams);
 
         // Ensure that we have the appropriate request data.
         if (options.data == null && model && _.include(['POST', 'PUT', 'PATCH'], method)) {
@@ -1781,7 +1895,17 @@ angular.module('angular.models.helper', ['angular.models.core.model'])
   .factory('_', ['$window',
     function ($window) {
       'use strict';
-      return $window._;
+      var _ = $window._;
+
+      _.mixin({
+        // todo: replace by contain function
+        'isParam': function(name) {
+          if (!_.isString(name)) { return false; }
+          return name.indexOf('@') === 0;
+        }
+      });
+
+      return _;
     }
   ])
 

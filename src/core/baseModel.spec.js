@@ -179,19 +179,29 @@ describe('Core: BaseModelClass', function () {
       });
 
       describe('should be able to', function(){
-        var person, Person;
+        var myModel, MyModel;
 
         beforeEach(function(){
-          Person = BaseModelClass.extend({
-            urlRoot: {
-              value: '/persons'
-            },
-            // Make it as default attributes
-            _queryParams: {
+          MyModel = BaseModelClass.extend({
+            urlRoot: {value: '/api/models'},
+            defaultQueryParams: {
               value: {
+                // Symbol '@' tells to a model to extract
+                // a parameter's value from a model's attribute set
                 'id': '@id',
-                'a': function(key){
-                  return key;
+                // Defining a static parameter 'type' with a value 'single'
+                'type': 'single',
+                // Defining a dynamic parameter 'sort' with a custom logic
+                'sort': '=paramSort'
+              }
+            },
+            paramSort: {
+              value: function() {
+                if (this.get('sort') === true) {
+                  return 'abc';
+                }
+                else {
+                  return 'desc';
                 }
               }
             }
@@ -199,36 +209,64 @@ describe('Core: BaseModelClass', function () {
         });
 
         beforeEach(function(){
-          person = new Person({id: 1, name: 'Eugene'});
+          myModel = new MyModel({id: 1});
         });
 
-        it('pre-define it', function() {
-          expect(person.getQueryParams()).toEqual({id: 1, a: 'a'});
-          $httpBackend.expectGET('/persons/1?a=a&id=1')
-            .respond({id: 1, name: 'Eugene'});
-          person.fetch();
-          $httpBackend.flush();
-          expect(person.get('name')).toEqual('Eugene');
+        it('get pre-defined query parameters', function(){
+          var params = myModel.getQueryParams();
+          expect(params.id).toEqual(1);
+          expect(params.type).toEqual('single');
+          expect(params.sort).toEqual('desc');
+          myModel.set('sort', true);
+          params = myModel.getQueryParams();
+          expect(params.sort).toEqual('abc');
         });
 
-        it('set dynamicaly', function(){
-          person.setQueryParam('b', 'b');
-          expect(person.getQueryParams()).toEqual({id: 1, a: 'a', 'b': 'b'});
-          $httpBackend.expectGET('/persons/1?a=a&b=b&id=1')
-            .respond({id: 1, name: 'Eugene'});
-          person.fetch();
-          $httpBackend.flush();
-          expect(person.get('name')).toEqual('Eugene');
+        it('override pre-defined query parameters', function() {
+          var defaults = {sort: true, id: 2, type: null};
+          var params = myModel.getQueryParams(defaults);
+          expect(params.id).toEqual(2);
+          expect(params.type).toEqual(null);
+          expect(params.sort).toEqual(true);
         });
 
-        it('unset dynamicaly', function(){
-          person.setQueryParam('id', null);
-          expect(person.getQueryParams()).toEqual({a: 'a'});
-          $httpBackend.expectGET('/persons/1?a=a')
+        it('set a query parameter by calling setQueryParam method', function(){
+          var params;
+          // Sets a dynamic query parameter
+          myModel.setQueryParam('name', '@name');
+          params = myModel.getQueryParams();
+          expect(params.name).toBeUndefined();
+          // Sets a static query parameter
+          myModel.set('name', 'Eugene');
+          params = myModel.getQueryParams();
+          expect(params.name).toEqual('Eugene');
+          // Sets a dynamic query parameter
+          myModel.setQueryParam('exec', '=paramSort');
+          params = myModel.getQueryParams();
+          expect(params.exec).toEqual('desc');
+        });
+
+        it('uset a query parameter by calling setQueryParam method', function(){
+          var params;
+          myModel.setQueryParam('id', null);
+          params = myModel.getQueryParams();
+          expect(params.id).toBeUndefined();
+        });
+
+        it('fetch a model data with pre-defined query parameters', function() {
+          $httpBackend.expectGET('/api/models/1?id=1&sort=desc&type=single')
             .respond({id: 1, name: 'Eugene'});
-          person.fetch();
+          myModel.fetch();
           $httpBackend.flush();
-          expect(person.get('name')).toEqual('Eugene');
+          expect(myModel.get('name')).toEqual('Eugene');
+        });
+
+        it('fetch a model data with overridden pre-defined query parameters', function(){
+          $httpBackend.expectGET('/api/models/1?id=2&sort=desc&type=single')
+            .respond({id: 1, name: 'Eugene'});
+          myModel.fetch({params: {id: 2}});
+          $httpBackend.flush();
+          expect(myModel.get('name')).toEqual('Eugene');
         });
       });
     });

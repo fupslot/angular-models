@@ -62,7 +62,7 @@ angular.module('angular.models.core.sync', ['angular.models.helper', 'angular.mo
           dynamicQueryParams = model.getQueryParams();
         }
         // Query params
-        params.params = _.extend({}, params.params, dynamicQueryParams);
+        params.params = _.extend({}, dynamicQueryParams, params.params);
 
         // Ensure that we have the appropriate request data.
         if (options.data == null && model && _.include(['POST', 'PUT', 'PATCH'], method)) {

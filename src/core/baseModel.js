@@ -113,12 +113,47 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
     proto = BaseModelClass.prototype = Object.create(Sync.prototype);
 
     /**
-     * @member {Array} BaseModelClass#_queryParams
+     * @member {Object} BaseModelClass#defaultQueryParams
      * @description A hash of query parameters.
-     * @type {Array}
      * @memberOf Core/Models
+     *
+     * @example <caption>Define a custom model with a set of query params</caption>
+     * var MyModel = BaseModelClass.extend({
+     *   urlRoot: {value: '/api/models'},
+     *   paramSort: {
+     *     value: function () {
+     *       // this - reference to a current model's instance
+     *       if (this.get('sort') === true) {
+     *         return 'abc';
+     *       }
+     *       else {
+     *         return 'desc';
+     *       }
+     *     }
+     *   },
+     *   // NOTE: Order is not guaranteed.
+     *   defaultQueryParams: {
+     *     value: {
+     *       // Defining a static parameter 'type' with a value 'single'
+     *       'type': 'single',
+     *       // Symbol '@' tells to a model to extract
+     *       // a parameter's value from a model's attribute set
+     *       'id': '@id',
+     *       // Symbol '=' tell to a model to evaluate a paramSort method
+     *       // and use the returned value as a value for a query parameter.
+     *       // If method was not defined, a 'null' value will be applied.
+     *       'sort': '=paramSort'
+     *     }
+     *   }
+     * });
+     *
+     * var myModel = new MyModel({id: 1});
+     * myModel.fetch(); //-> GET /api/models/1?id=1&type=single&sort=desc
+     *
+     * myModel.set('sort', true);
+     * myModel.fetch(); //-> GET /api/models/1?id=1&type=single&sort=abc
      */
-    Object.defineProperty(proto, '_queryParams', {
+    Object.defineProperty(proto, 'defaultQueryParams', {
       value: {}
     });
 
@@ -651,10 +686,10 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
     Object.defineProperty(proto, 'setQueryParam', {
       value: function (key, value) {
         if (value != null) {
-          this._queryParams[key] = value;
+          this.defaultQueryParams[key] = value;
         }
         else {
-          delete this._queryParams[key];
+          delete this.defaultQueryParams[key];
         }
       }
     });
@@ -662,24 +697,27 @@ angular.module('angular.models.core.model', ['angular.models.exception.validatio
     /**
      * @function BaseModelClass#getQueryParams
      * @description Returns a key-value object which containing a query parameters
+     * @param {Object} params A hash of query parameters. If any matches found then a default set will overridden.
      * @return {Object}
      * @memberOf Core/Models
      */
     Object.defineProperty(proto, 'getQueryParams', {
-      value: function () {
+      value: function getQueryParams (params) {
         var values = {};
-        _.each(this._queryParams, function(value, key) {
-          // {'a': 'a'}
-          if (!_.isFunction(value)) {
-            values[key] = _.isParam(value) ? this.get(key) : key;
+        params = params || {};
+        _.each(this.defaultQueryParams, function(value, key) {
+          if (_.startsWith(value, '@')) {
+            values[key] = this.get(_.trimLeft(value, '@'));
           }
-          // [{a: 1}]
-          if (_.isFunction(value)) {
-            values[key] = value.call(this, key);
+          else if (_.startsWith(value, '=')) {
+            values[key] = _.result(this, _.trimLeft(value, '='), null);
+          }
+          else {
+            values[key] = value;
           }
         }, this);
 
-        return values;
+        return _.extend({}, values, params);
       }
     });
 
