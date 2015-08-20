@@ -18,8 +18,8 @@ angular.module('myApp', ['angular.models', 'ngMockE2E'])
     // });
   })
 
-  .factory('PersonCollection', function(BaseCollection, PersonModel){
-    return BaseCollection.extend({
+  .factory('PersonCollection', function(BaseCollectionClass, PersonModel){
+    return BaseCollectionClass.extend({
       url: '/persons',
       model: PersonModel
     });

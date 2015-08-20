@@ -11,6 +11,7 @@ module.exports = function (grunt) {
       dist: './dist',
       demo: './demo',
       src: './src',
+      testSpecs: './test/**/*.spec.js',
       jasmine: './jasmine'
     },
     pkg: grunt.file.readJSON('package.json'),
@@ -47,8 +48,8 @@ module.exports = function (grunt) {
         files: {
           '<%= app.jasmine %>/SpecRunner.html': [
             [
-              '<%= app.src %>/**/*.js',
-              '!<%= app.src %>/**/*.spec.js'
+              '<%= app.dist %>/<%= pkg.name %>.js',
+              // '<%= app.src %>/**/*.js',
             ]
           ]
         }
@@ -65,8 +66,7 @@ module.exports = function (grunt) {
         files: {
           '<%= app.jasmine %>/SpecRunner.html': [
             [
-              '!<%= app.src %>/**/*.js',
-              '<%= app.src %>/**/*.spec.js'
+              '<%= app.testSpecs %>'
             ]
           ]
         }
