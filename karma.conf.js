@@ -14,9 +14,9 @@ module.exports = function(config) {
       'vendors/lodash/lodash.js',
       'vendors/angular/angular.js',
       'vendors/angular-mocks/angular-mocks.js',
-      // 'dist/angular.models.js',
-      'demo/app/**/*.js',
-      'src/**/*.js'
+      '/dist/angular.models.js',
+      // './src/**/*.js',
+      './test/unit/**/*.spec.js'
     ],
 
     preprocessors: {

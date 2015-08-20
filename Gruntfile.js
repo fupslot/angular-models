@@ -14,6 +14,16 @@ module.exports = function (grunt) {
       jasmine: './jasmine'
     },
     pkg: grunt.file.readJSON('package.json'),
+    meta: {
+      banner: '/**\n' +
+        ' * <%= pkg.name %>\n' +
+        ' * <%= pkg.description %>\n' +
+        ' * @author <%= pkg.author %>\n' +
+        ' * @version v<%= pkg.version %><%= buildtag %>\n' +
+        ' * @link <%= pkg.homepage %>\n' +
+        ' * @license <%= pkg.license %>\n' +
+        ' */'
+    },
     watch: {
       'default': {
         files: ['<%= app.src %>/**/*.js'],
@@ -96,18 +106,32 @@ module.exports = function (grunt) {
     clean: {
       'dist': ['dist/*']
     },
+
     // Concat
+    // concat: {
+    //   dist: {
+    //     options: {
+    //       separator: '\n',
+    //       banner: '(function(angular) {\n',
+    //       footer: '\n})(angular);'
+    //     },
+    //     src: ['src/**/*.js', '!src/**/*.spec.js'],
+    //     dest: '<%= app.dist %>/<%= pkg.name %>.js'
+    //   }
+    // },
+
     concat: {
-      dist: {
+      'dist': {
         options: {
-          separator: '\n',
-          banner: '(function(angular) {\n',
-          footer: '\n})(angular);'
+          banner: '<%= meta.banner %>\n\n'+
+                  '(function (window, angular, undefined) {\n',
+          footer: '})(window, window.angular);'
         },
-        src: ['src/**/*.js', '!src/**/*.spec.js'],
+        src: ['src/**/*.js'],
         dest: '<%= app.dist %>/<%= pkg.name %>.js'
       }
     },
+
     // Uglify
     uglify: {
       dist: {
