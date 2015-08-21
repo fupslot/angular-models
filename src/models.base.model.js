@@ -580,7 +580,7 @@ angular.module('angular.models')
     value: function save (options) {
       options = _.extend({validate: true}, options);
       var model = this;
-      var method = model.isNew() ? 'POST' : 'PUT';
+      var operation = model.isNew() ? 'create' : 'update';
 
       return $q(function (resolve, reject) {
         if (!model.url()) {
@@ -599,7 +599,7 @@ angular.module('angular.models')
           resolve(model);
         };
         WrapError(model, reject, options);
-        model.sync(method, model, options);
+        model.sync(operation, model, options);
       });
     }
   });
@@ -625,7 +625,7 @@ angular.module('angular.models')
           resolve(model);
         };
         WrapError(model, reject, options);
-        model.sync('GET', model, options);
+        model.sync('read', model, options);
       });
     }
   });
@@ -659,7 +659,7 @@ angular.module('angular.models')
           return options.success();
         }
         WrapError(model, reject, options);
-        model.sync('DELETE', model, options);
+        model.sync('delete', model, options);
       });
     }
   });

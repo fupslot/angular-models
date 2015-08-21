@@ -414,7 +414,7 @@ angular.module('angular.models')
         };
 
         WrapError(self, reject, options);
-        self.sync('GET', self, options);
+        self.sync('read', self, options);
       });
     }
   });

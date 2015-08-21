@@ -10,14 +10,8 @@ module.exports = function(config) {
     frameworks: ['jasmine'],
 
     // list of files / patterns to load in the browser
-    files: [
-      'vendors/lodash/lodash.js',
-      'vendors/angular/angular.js',
-      'vendors/angular-mocks/angular-mocks.js',
-      // './dist/angular.models.js',
-      './src/**/*.js',
-      './test/unit/**/*.spec.js'
-    ],
+    // Files served over Gruntfile.js
+    files: [],
 
     preprocessors: {
       '**/*.jade': 'ng-jade2js',

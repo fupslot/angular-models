@@ -5,14 +5,24 @@ module.exports = function (grunt) {
     injector: 'grunt-asset-injector'
   });
 
+  var karmaDefaultFiles = [
+    'vendors/lodash/lodash.js',
+    'vendors/angular/angular.js',
+    'vendors/angular-mocks/angular-mocks.js'
+  ];
+
   grunt.initConfig({
     app: {
       tmp: './.tmp',
       dist: './dist',
       demo: './demo',
-      src: './src',
-      testSpecs: './test/**/*.spec.js',
-      jasmine: './jasmine'
+      src: './src/**/*.js',
+      specs: './test/**/*.spec.js',
+      packageName: '<%= app.dist %>/<%= pkg.name %>.js',
+      packageNameMin: '<%= app.dist %>/<%= pkg.name %>.min.js',
+      packageNameMap: '<%= app.dist %>/<%= pkg.name %>.map',
+      jasmine: './jasmine',
+      jasmineSpecRunner: '<%= app.jasmine %>/SpecRunner.html'
     },
     pkg: grunt.file.readJSON('package.json'),
     meta: {
@@ -27,7 +37,7 @@ module.exports = function (grunt) {
     },
     watch: {
       'default': {
-        files: ['<%= app.src %>/**/*.js'],
+        files: ['<%= app.src %>'],
         tasks: []
       },
       options: {
@@ -36,7 +46,7 @@ module.exports = function (grunt) {
     },
     // Injector
     injector: {
-      'jasmine-src': {
+      'build': {
         options: {
           transform: function(filePath) {
             filePath = filePath.replace('\/\.', '..');
@@ -46,15 +56,23 @@ module.exports = function (grunt) {
           endtag: '<!-- endinjector -->'
         },
         files: {
-          '<%= app.jasmine %>/SpecRunner.html': [
-            [
-              '<%= app.dist %>/<%= pkg.name %>.js',
-              // '<%= app.src %>/**/*.js',
-            ]
-          ]
+          '<%= app.jasmineSpecRunner %>': '<%= app.packageNameMin %>'
         }
       },
-      'jasmine-spec': {
+      'src': {
+        options: {
+          transform: function(filePath) {
+            filePath = filePath.replace('\/\.', '..');
+            return '<script src="' + filePath + '"></script>';
+          },
+          starttag: '<!-- injector:src -->',
+          endtag: '<!-- endinjector -->'
+        },
+        files: {
+          '<%= app.jasmineSpecRunner %>': '<%= app.src %>'
+        }
+      },
+      'spec': {
         options: {
           transform: function(filePath) {
             filePath = filePath.replace('\/\.', '..');
@@ -64,61 +82,21 @@ module.exports = function (grunt) {
           endtag: '<!-- endinjector -->'
         },
         files: {
-          '<%= app.jasmine %>/SpecRunner.html': [
-            [
-              '<%= app.testSpecs %>'
-            ]
-          ]
-        }
-      },
-      // Inject application script files into index.html (doesn't include bower)
-      'demo-src': {
-        options: {
-          transform: function(filePath) {
-            filePath = filePath.replace('\/\.', '..');
-            return '<script src="' + filePath + '"></script>';
-          },
-          starttag: '<!-- injector:js -->',
-          endtag: '<!-- endinjector -->'
-        },
-        files: {
-          '<%= app.demo %>/index.html': [
-            [
-              '<%= app.dist %>/<%= pkg.name%>.js',
-              '<%= app.demo %>/app/**/*.js'
-            ]
-          ]
+          '<%= app.jasmineSpecRunner %>': '<%= app.specs %>'
         }
       }
     },
     // Automatically inject Bower components into the app
     wiredep: {
-      demo: {
-        src: '<%= app.demo %>/index.html',
-        exclude: []
-      },
       jasmine: {
-        src: '<%= app.jasmine %>/SpecRunner.html',
+        src: '<%= app.jasmineSpecRunner %>',
         exclude: [/bootstrap.js/]
       }
     },
-    // Clean
-    clean: {
-      'dist': ['dist/*']
-    },
 
-    // Concat
-    // concat: {
-    //   dist: {
-    //     options: {
-    //       separator: '\n',
-    //       banner: '(function(angular) {\n',
-    //       footer: '\n})(angular);'
-    //     },
-    //     src: ['src/**/*.js', '!src/**/*.spec.js'],
-    //     dest: '<%= app.dist %>/<%= pkg.name %>.js'
-    //   }
-    // },
+    clean: {
+      'dist': ['dist/*', 'doc/*']
+    },
 
     concat: {
       'dist': {
@@ -127,8 +105,8 @@ module.exports = function (grunt) {
                   '(function (window, angular, undefined) {\n',
           footer: '})(window, window.angular);'
         },
-        src: ['src/**/*.js'],
-        dest: '<%= app.dist %>/<%= pkg.name %>.js'
+        src: ['<%= app.src %>'],
+        dest: '<%= app.packageName %>'
       }
     },
 
@@ -138,10 +116,10 @@ module.exports = function (grunt) {
         options: {
           enclose: {angular:'angular'},
           sourceMap: true,
-          sourceMapName: '<%= app.dist%>/<%= pkg.name %>.map'
+          sourceMapName: '<%= app.packageNameMap %>'
         },
         files: {
-          '<%= app.dist%>/<%= pkg.name %>.min.js': ['src/**/*.js', '!src/**/*.spec.js']
+          '<%= app.packageNameMin %>': '<%= app.src %>'
         }
       }
     },
@@ -156,7 +134,7 @@ module.exports = function (grunt) {
     },
 
     eslint: {
-      target: ['src/**/*.js', '!src/**/*.spec.js']
+      target: ['<%= app.src %>']
     },
 
     githooks: {
@@ -167,27 +145,48 @@ module.exports = function (grunt) {
 
     // Test settings
     karma: {
+      options: {
+        files: karmaDefaultFiles
+      },
+
+      build:{
+        configFile: 'karma.conf.js',
+        reporters: ['spec'],
+        singleRun: true,
+        files: [
+          {src: ['<%= app.packageNameMin %>']},
+          {src: ['<%= app.specs %>']}
+        ]
+      },
+
       unit: {
         configFile: 'karma.conf.js',
         reporters: ['spec'],
-        singleRun: true
+        singleRun: true,
+        files: [
+          {src: ['<%= app.src %>']},
+          {src: ['<%= app.specs %>']}
+        ]
+      }
+    },
+
+    // Allow the use of non-minsafe AngularJS files. Automatically makes it
+    // minsafe compatible so Uglify does not destroy the ng references
+    ngAnnotate: {
+      options: {
+        singleQuotes: true
+      },
+      dist: {
+        files: [{
+          expand: true,
+          cwd: './dist',
+          src: '*.js',
+          dest: './dist'
+        }]
       }
     },
 
     connect: {
-      'demo': {
-        options: {
-          port: 3333,
-          livereload: true,
-          open: true,
-          base: {
-            path: './',
-            options: {
-              index: './demo/index.html'
-            }
-          }
-        }
-      },
       'test': {
         options: {
           port: 4444,
@@ -196,7 +195,7 @@ module.exports = function (grunt) {
           base: {
             path: './',
             options: {
-              index: './jasmine/SpecRunner.html'
+              index: '<%= jasmineSpecRunner %>'
             }
           }
         }
@@ -204,8 +203,28 @@ module.exports = function (grunt) {
     }
   });
 
-  grunt.registerTask('build', ['eslint', 'karma:unit', 'clean:dist', 'concat:dist', 'uglify:dist']);
-  grunt.registerTask('serve', ['wiredep:demo', 'injector:demo-src','connect:demo','watch']);
-  grunt.registerTask('test', ['injector:jasmine-src', 'injector:jasmine-spec', 'wiredep:jasmine', 'clean:dist', 'concat:dist', 'karma:unit']);
+  grunt.registerTask('build', ['clean:dist', 'eslint', 'karma:unit', 'concat:dist', 'ngAnnotate:dist', 'uglify:dist']);
 
+  grunt.registerTask('test', function(target){
+    if (target === 'build') {
+      grunt.task.run([
+        'clean:dist',
+        'eslint',
+        'concat:dist',
+        'ngAnnotate:dist',
+        'uglify:dist',
+        'karma:build'
+      ]);
+    }
+    else {
+      grunt.task.run([
+        'injector:src',
+        'injector:spec',
+        'wiredep:jasmine',
+        'clean:dist',
+        'concat:dist',
+        'karma:unit'
+      ]);
+    }
+  });
 };

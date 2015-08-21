@@ -19,7 +19,7 @@ angular.module('angular.models', []);
 
 angular.module('angular.models')
 
-.factory('BaseCollectionClass', function ($q, $parse, Extend, Sync, WrapError, ValidationException, _, isModel) {
+.factory('BaseCollectionClass', ['$q', '$parse', 'Extend', 'Sync', 'WrapError', 'ValidationException', '_', 'isModel', function ($q, $parse, Extend, Sync, WrapError, ValidationException, _, isModel) {
 
   var proto;
 
@@ -431,7 +431,7 @@ angular.module('angular.models')
         };
 
         WrapError(self, reject, options);
-        self.sync('GET', self, options);
+        self.sync('read', self, options);
       });
     }
   });
@@ -604,7 +604,7 @@ angular.module('angular.models')
   BaseCollectionClass.extend = Extend;
 
   return BaseCollectionClass;
-});
+}]);
 
 'use strict';
 
@@ -612,7 +612,7 @@ angular.module('angular.models')
 
 angular.module('angular.models')
 
-.factory('BaseModelClass', function ($q, $parse, Extend, Sync, WrapError, ValidationException, _) {
+.factory('BaseModelClass', ['$q', '$parse', 'Extend', 'Sync', 'WrapError', 'ValidationException', '_', function ($q, $parse, Extend, Sync, WrapError, ValidationException, _) {
 
   var proto;
 
@@ -1188,7 +1188,7 @@ angular.module('angular.models')
     value: function save (options) {
       options = _.extend({validate: true}, options);
       var model = this;
-      var method = model.isNew() ? 'POST' : 'PUT';
+      var operation = model.isNew() ? 'create' : 'update';
 
       return $q(function (resolve, reject) {
         if (!model.url()) {
@@ -1207,7 +1207,7 @@ angular.module('angular.models')
           resolve(model);
         };
         WrapError(model, reject, options);
-        model.sync(method, model, options);
+        model.sync(operation, model, options);
       });
     }
   });
@@ -1233,7 +1233,7 @@ angular.module('angular.models')
           resolve(model);
         };
         WrapError(model, reject, options);
-        model.sync('GET', model, options);
+        model.sync('read', model, options);
       });
     }
   });
@@ -1267,7 +1267,7 @@ angular.module('angular.models')
           return options.success();
         }
         WrapError(model, reject, options);
-        model.sync('DELETE', model, options);
+        model.sync('delete', model, options);
       });
     }
   });
@@ -1391,7 +1391,7 @@ angular.module('angular.models')
   BaseModelClass.extend = Extend;
 
   return BaseModelClass;
-});
+}]);
 
 'use strict';
 
@@ -1411,7 +1411,7 @@ angular.module('angular.models.config', [])
 
 angular.module('angular.models')
 
-.service('Events', function (Extend, _) {
+.service('Events', ['Extend', '_', function (Extend, _) {
 
   /**
    * @class Events
@@ -1765,7 +1765,7 @@ angular.module('angular.models')
   Events.extend = Extend;
 
   return Events;
-});
+}]);
 
 'use strict';
 
@@ -1793,7 +1793,7 @@ angular.module('angular.models')
 
 angular.module('angular.models')
 
-.factory('Extend', function (_) {
+.factory('Extend', ['_', function (_) {
 
   /**
    * @class Extend
@@ -1841,20 +1841,20 @@ angular.module('angular.models')
   }
 
   return Extend;
-});
+}]);
 
 'use strict';
 
 angular.module('angular.models')
 
-.factory('isModel', function (BaseModelClass){
+.factory('isModel', ['BaseModelClass', function (BaseModelClass){
   'use strict';
   return function isModel(obj) {
     return obj instanceof BaseModelClass;
   };
-})
+}])
 
-.factory('WrapError', function (_) {
+.factory('WrapError', ['_', function (_) {
   'use strict';
   // Wrap an optional error callback with a fallback error event.
   function WrapError (model, reject, options) {
@@ -1872,7 +1872,7 @@ angular.module('angular.models')
   }
 
   return WrapError;
-});
+}]);
 
 'use strict';
 
@@ -1892,85 +1892,132 @@ angular.module('angular.models')
 
 angular.module('angular.models')
 
-.factory('Sync', function ($http, _, Events) {
+.provider('Sync', function () {
   var proto;
 
-  /**
-   * @class Sync
-   * @description Override this function to change the manner in which Backbone persists
-   *              models to the server. You will be passed the type of request, and the
-   *              model in question. By default, makes a RESTful Ajax request
-   *              to the model's `url()`. Some possible customizations could be:
-   *
-   *              * Use `setTimeout` to batch rapid-fire updates into a single request.
-   *              * Send up the models as XML instead of JSON.
-   *              * Persist models via WebSockets instead of Ajax.
-   *
-   *              Turn on `Backbone.emulateHTTP` in order to send `PUT` and `DELETE` requests
-   *              as `POST`, with a `_method` parameter containing the true HTTP method,
-   *              as well as all requests with the body as `application/x-www-form-urlencoded`
-   *              instead of `application/json` with the model in a param named `model`.
-   *              Useful when interfacing with server-side languages like **PHP** that make
-   *              it difficult to read the body of `PUT` requests.
-   * @memberOf Core
-   */
-  function Sync () {}
+  // The HTTP method map.
+  var CRUD_MAP = {
+    'create': 'POST',
+    'update': 'PUT',
+    'patch':  'PATCH',
+    'delete': 'DELETE',
+    'read':   'GET'
+  };
 
-  proto = Sync.prototype = Object.create(Events.prototype);
-
-  /**
-   * @function Sync#sync
-   * @description Proxy `Sync` by default -- but override this if you need
-   *              custom syncing semantics for *this* particular model.
-   * @param  {string} method   GET, POST, PUT, DELETE methods
-   * @param  {BaseModelClass} model An instance of a BaseModelClass
-   * @param  {Object} options An options
-   * @memberOf Core
-   * @return {Promise}
-   */
-  Object.defineProperty(proto, 'sync', {
-    value: function (method, model, options) {
-      var dynamicQueryParams = {};
-
-      // Default options, unless specified.
-      _.defaults(options || (options = {}));
-
-      // Default JSON-request options.
-      var params = _.extend({method: method, dataType: 'json', cache: false}, _.pick(options, 'params'));
-
-      params.headers = {};
-      params.headers['accept'] = 'application/json, text/plain, */*';
-
-      params.url = options.url || _.result(model, 'url');
-      // Ensure that we have a URL.
-      if (!params.url) {
-        throw new Error('A "url" property or function must be specified');
-      }
-
-      // Obtains a dynamic query params,
-      // NOTE: must solve angular circular dependency issue
-      // if (isModel(model)) {
-      if (model.getQueryParams) {
-        dynamicQueryParams = model.getQueryParams();
-      }
-      // Query params
-      params.params = _.extend({}, dynamicQueryParams, params.params);
-
-      // Ensure that we have the appropriate request data.
-      if (options.data == null && model && _.include(['POST', 'PUT', 'PATCH'], method)) {
-        params.headers['content-type'] = 'application/json';
-        params.data = JSON.stringify(options.attrs || model.toJSON(options));
-      }
-
-      options.success = options.success || angular.noop;
-      options.error = options.error || angular.noop;
-
-      return $http(params)
-        .success(options.success)
-        .error(options.error);
+  this.setOperation = function setOperation(operation, method) {
+    if (CRUD_MAP.hasOwnProperty(operation)) {
+      CRUD_MAP[operation] = method;
     }
-  });
+  };
 
-  return Sync;
+  this.$get = /*@ngInject*/ ['$http', '_', 'Events', function($http, _, Events) {
+    /**
+     * @class Sync
+     * @description Override this function to change the manner in which Backbone persists
+     *              models to the server. You will be passed the type of request, and the
+     *              model in question. By default, makes a RESTful Ajax request
+     *              to the model's `url()`. Some possible customizations could be:
+     *
+     *              * Use `setTimeout` to batch rapid-fire updates into a single request.
+     *              * Send up the models as XML instead of JSON.
+     *              * Persist models via WebSockets instead of Ajax.
+     *
+     *              Turn on `Backbone.emulateHTTP` in order to send `PUT` and `DELETE` requests
+     *              as `POST`, with a `_method` parameter containing the true HTTP method,
+     *              as well as all requests with the body as `application/x-www-form-urlencoded`
+     *              instead of `application/json` with the model in a param named `model`.
+     *              Useful when interfacing with server-side languages like **PHP** that make
+     *              it difficult to read the body of `PUT` requests.
+     * @memberOf Core
+     */
+    function Sync () {}
+
+    proto = Sync.prototype = Object.create(Events.prototype);
+
+    /**
+     * @function Sync#sync
+     * @description Proxy `Sync` by default.
+     *              Override this if you need custom syncing semantics for a particular model.
+     * @param  {string} method  One of a CRUD operations. Ex: read, create, update or delete.
+     * @param  {BaseModelClass} model An instance of a model class where the sync method have been called
+     * @param  {Object} options An options
+     * @memberOf Core
+     * @return {Promise}
+     *
+     * @example <caption>How to re-map CRUD operations</caption>
+     * angular.module('myProject', ['angular.models'])
+     *   // Default map:
+     *   //  'create' -> 'POST'
+     *   //  'read' -> 'GET'
+     *   //  'update' -> 'PUT'
+     *   //  'delete' -> 'DELETE'
+     *   //  'patch' -> 'PATCH'
+     *   .config(function (SyncProvider) {
+     *     // It will force BaseModelClass and BaseCollectionClass
+     *     // invoke a 'POST' method instead of 'GET'.
+     *     // NOTE: All you models and collection will inherit that behaviour
+     *     // as long as you won't override it for a particular class.
+     *     SyncProvider.setOperation('read', 'POST');
+     *   })
+     *   .factory('MyModelClass', function (BaseModelClass) {
+     *     return BaseModelClass.extend({
+     *       urlRoot: { value: '/api/models'}
+     *     });
+     *   })
+     *   .controller(function(MyModelClass){
+     *     var myModel = new MyModelClass();
+     *     myModel.fetch(); //-> Will reserve a POST request
+     *   });
+     */
+    Object.defineProperty(proto, 'sync', {
+      value: function (method, model, options) {
+        var dynamicQueryParams = {};
+
+        method = CRUD_MAP[method];
+
+        // Default options, unless specified.
+        _.defaults(options || (options = {}));
+
+        // Request method, unless specified
+        options.method = options.method || method;
+
+        // Default JSON-request options.
+        var params = _.pick(options, ['method', 'cache', 'timeout', 'params']);
+
+        params.headers = {};
+        params.headers['accept'] = 'application/json, text/plain, */*';
+
+        params.url = options.url || _.result(model, 'url');
+        // Ensure that we have a URL.
+        if (!params.url) {
+          throw new Error('A "url" property or function must be specified');
+        }
+
+        // Obtains a dynamic query params,
+        // NOTE: must solve angular circular dependency issue
+        // if (isModel(model)) {
+        if (model.getQueryParams) {
+          dynamicQueryParams = model.getQueryParams();
+        }
+        // Query params
+        params.params = _.extend({}, dynamicQueryParams, params.params);
+
+        // Ensure that we have the appropriate request data.
+        if (options.data == null && model && _.include(['POST', 'PUT', 'PATCH'], method)) {
+          params.headers['content-type'] = 'application/json';
+          params.data = JSON.stringify(options.attrs || model.toJSON(options));
+        }
+
+        options.success = options.success || angular.noop;
+        options.error = options.error || angular.noop;
+
+        return $http(params)
+          .success(options.success)
+          .error(options.error);
+      }
+    });
+
+    return Sync;
+  }];
 });
 })(window, window.angular);
