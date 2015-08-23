@@ -122,6 +122,7 @@ angular.module('angular.models')
         }
 
         params.transformResponse = this.transformResponse;
+        params.transformRequest = this.transformRequest;
 
         options.success = options.success || angular.noop;
         options.error = options.error || angular.noop;
@@ -132,13 +133,14 @@ angular.module('angular.models')
       },
 
       /**
-       * @var cache
+       * @var BaseSyncClass#cache
        * @description If true, a default $http cache will be used to cache the GET request
        * @type {Boolean}
        */
       cache: false,
 
       /**
+       * @function BaseSyncClass#transformResponse
        * @description A transform function or an array of such functions.
        *              The transform function takes the http response body,
        *              headers and status and returns its transformed (typically deserialized)
@@ -148,7 +150,17 @@ angular.module('angular.models')
        * @param  {Object} status  A status that server respond with
        * @return {Object} A transformed response
        */
-      transformResponse: function(data) {
+      transformResponse: function transformResponse(data) {
+        return data;
+      },
+
+      /**
+       * @function transformResponse
+       * @description
+       * @param  {Object} data A request data
+       * @return {Object}  A transformed request
+       */
+      transformRequest: function transformRequest(data){
         return data;
       }
     }, {extend: Extend});
