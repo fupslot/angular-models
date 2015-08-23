@@ -7,11 +7,11 @@ describe('Core: BaseModelClass', function () {
   // load the directive's module and view
   beforeEach(module('angular.models'));
 
-  beforeEach(inject(function (_BaseModelClass_, _Events_, _Sync_, _$httpBackend_) {
+  beforeEach(inject(function (_BaseModelClass_, _BaseEventClass_, _BaseSyncClass_, _$httpBackend_) {
     $httpBackend = _$httpBackend_;
     BaseModelClass = _BaseModelClass_;
-    Events = _Events_;
-    Sync = _Sync_;
+    Events = _BaseEventClass_;
+    Sync = _BaseSyncClass_;
   }));
 
 

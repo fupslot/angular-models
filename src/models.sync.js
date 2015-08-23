@@ -2,7 +2,7 @@
 
 angular.module('angular.models')
 
-.provider('Sync', function () {
+.provider('BaseSyncClass', function () {
   var proto;
 
   // The HTTP method map.
@@ -20,9 +20,9 @@ angular.module('angular.models')
     }
   };
 
-  this.$get = /*@ngInject*/ function($http, _, Events) {
+  this.$get = /*@ngInject*/ function($http, _, Extend, BaseEventClass) {
     /**
-     * @class Sync
+     * @class BaseSyncClass
      * @description Override this function to change the manner in which Backbone persists
      *              models to the server. You will be passed the type of request, and the
      *              model in question. By default, makes a RESTful Ajax request
@@ -40,13 +40,13 @@ angular.module('angular.models')
      *              it difficult to read the body of `PUT` requests.
      * @memberOf Core
      */
-    function Sync () {}
+    function BaseSyncClass () {}
 
-    proto = Sync.prototype = Object.create(Events.prototype);
+    proto = BaseSyncClass.prototype = Object.create(BaseEventClass.prototype);
 
     /**
-     * @function Sync#sync
-     * @description Proxy `Sync` by default.
+     * @function BaseSyncClass#sync
+     * @description Proxy `BaseSyncClass` by default.
      *              Override this if you need custom syncing semantics for a particular model.
      * @param  {string} method  One of a CRUD operations. Ex: read, create, update or delete.
      * @param  {BaseModelClass} model An instance of a model class where the sync method have been called
@@ -127,6 +127,8 @@ angular.module('angular.models')
       }
     });
 
-    return Sync;
+    BaseSyncClass.extend = Extend;
+
+    return BaseSyncClass;
   };
 });

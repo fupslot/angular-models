@@ -2,7 +2,7 @@
 
 angular.module('angular.models')
 
-.factory('BaseCollectionClass', function ($q, $parse, Extend, Sync, WrapError, ValidationException, _, isModel) {
+.factory('BaseCollectionClass', function ($q, $parse, Extend, BaseSyncClass, WrapError, _, isModel) {
 
   var proto;
 
@@ -32,7 +32,7 @@ angular.module('angular.models')
   var setOptions = {add: true, remove: true, merge: true};
   var addOptions = {add: true, remove: false};
 
-  proto = BaseCollectionClass.prototype = Object.create(Sync.prototype);
+  proto = BaseCollectionClass.prototype = Object.create(BaseSyncClass.prototype);
 
   /**
    * @property {BaseModelClass} BaseCollectionClass#model

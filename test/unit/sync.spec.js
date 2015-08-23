@@ -4,12 +4,12 @@ describe('Sync class', function () {
 
 
 
-  describe('have an ability to override CRUD method using SyncProvider', function(){
+  describe('have an ability to override CRUD method using BaseSyncClassProvider', function(){
     var MyClass;
 
     // load the directive's module and view
-    beforeEach(module('angular.models', function(SyncProvider){
-      SyncProvider.setOperation('read', 'POST');
+    beforeEach(module('angular.models', function(BaseSyncClassProvider){
+      BaseSyncClassProvider.setOperation('read', 'POST');
     }));
 
     beforeEach(inject(function(_$httpBackend_){

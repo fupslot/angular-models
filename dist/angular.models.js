@@ -19,7 +19,17 @@ angular.module('angular.models', []);
 
 angular.module('angular.models')
 
-.factory('BaseCollectionClass', ['$q', '$parse', 'Extend', 'Sync', 'WrapError', 'ValidationException', '_', 'isModel', function ($q, $parse, Extend, Sync, WrapError, ValidationException, _, isModel) {
+.factory('BaseClass', function (Extend) {
+  function BaseClass(){}
+  BaseClass.extend = Extend;
+  return BaseClass;
+});
+
+'use strict';
+
+angular.module('angular.models')
+
+.factory('BaseCollectionClass', function ($q, $parse, Extend, BaseSyncClass, WrapError, _, isModel) {
 
   var proto;
 
@@ -49,7 +59,7 @@ angular.module('angular.models')
   var setOptions = {add: true, remove: true, merge: true};
   var addOptions = {add: true, remove: false};
 
-  proto = BaseCollectionClass.prototype = Object.create(Sync.prototype);
+  proto = BaseCollectionClass.prototype = Object.create(BaseSyncClass.prototype);
 
   /**
    * @property {BaseModelClass} BaseCollectionClass#model
@@ -604,7 +614,7 @@ angular.module('angular.models')
   BaseCollectionClass.extend = Extend;
 
   return BaseCollectionClass;
-}]);
+});
 
 'use strict';
 
@@ -612,7 +622,7 @@ angular.module('angular.models')
 
 angular.module('angular.models')
 
-.factory('BaseModelClass', ['$q', '$parse', 'Extend', 'Sync', 'WrapError', 'ValidationException', '_', function ($q, $parse, Extend, Sync, WrapError, ValidationException, _) {
+.factory('BaseModelClass', function ($q, $parse, Extend, BaseSyncClass, WrapError, ValidationExceptionClass, _) {
 
   var proto;
 
@@ -721,7 +731,7 @@ angular.module('angular.models')
   }
 
 
-  proto = BaseModelClass.prototype = Object.create(Sync.prototype);
+  proto = BaseModelClass.prototype = Object.create(BaseSyncClass.prototype);
 
   /**
    * @member {Object} BaseModelClass#defaultQueryParams
@@ -925,7 +935,7 @@ angular.module('angular.models')
 
       // Run validation.
       var error = this._validate(attrs, options);
-      if (error instanceof ValidationException) {
+      if (error instanceof ValidationExceptionClass) {
         return false;
       }
 
@@ -1347,7 +1357,7 @@ angular.module('angular.models')
       }
       attrs = _.extend({}, this.attributes, attrs);
       var error = this.validationError = this.validate(attrs, options) || null;
-      if (!(error instanceof ValidationException)) {
+      if (!(error instanceof ValidationExceptionClass)) {
         return true;
       }
       this.trigger('invalid', this, error, _.extend(options, {validationError: error}));
@@ -1391,7 +1401,7 @@ angular.module('angular.models')
   BaseModelClass.extend = Extend;
 
   return BaseModelClass;
-}]);
+});
 
 'use strict';
 
@@ -1411,17 +1421,17 @@ angular.module('angular.models.config', [])
 
 angular.module('angular.models')
 
-.service('Events', ['Extend', '_', function (Extend, _) {
+.service('BaseEventClass', function (Extend, _) {
 
   /**
-   * @class Events
+   * @class BaseEventClass
    * @description A module that can be mixed in to *any object* in order to provide it with
    *              custom events. You may bind with `on` or remove with `off` callback
    *              functions to an event; `trigger`-ing an event fires all callbacks in
    *              succession.
    * @memberOf Core
-   * @example <caption>Define a custom class based on Events</caption>
-   * var MyObject = Events.extend({
+   * @example <caption>Define a custom class based on BaseEventClass</caption>
+   * var MyObject = BaseEventClass.extend({
    *   'doSomething': {
    *     value: function () {
    *       this.trigger('custom', this);
@@ -1436,7 +1446,7 @@ angular.module('angular.models')
    *
    * myObject.doSomething(); // this will trigger the custom event
    */
-  var Events = function () {};
+  var BaseEventClass = function () {};
 
   // Regular expression used to split event strings.
   var eventSplitter = /\s+/;
@@ -1593,28 +1603,28 @@ angular.module('angular.models')
   /**
    * Bind an event to a `callback` function. Passing `"all"` will bind
    * the callback to all events fired.
-   * @function Events#on
+   * @function BaseEventClass#on
    * @param  {string}   name     An event name
    * @param  {Function} callback A callback funciton
    * @param  {Object}   context  A context
-   * @return {Events}
+   * @return {BaseEventClass}
    * @memberOf Core
    */
-  Events.prototype.on = function(name, callback, context) {
+  BaseEventClass.prototype.on = function(name, callback, context) {
     return internalOn(this, name, callback, context);
   };
 
   /**
    * Inversion-of-control versions of `on`. Tell *this* object to listen to
    * an event in another object... keeping track of what it's listening to.
-   * @function Events#listenTo
+   * @function BaseEventClass#listenTo
    * @param {object} object An object which events to listen
    * @param {string} name An event name
    * @param {Function} callback A callback function
-   * @return {Events}
+   * @return {BaseEventClass}
    * @memberOf Core
    */
-  Events.prototype.listenTo = function(obj, name, callback) {
+  BaseEventClass.prototype.listenTo = function(obj, name, callback) {
     if (!obj) { return this; }
     var id = obj._listenId || (obj._listenId = _.uniqueId('l'));
     var listeningTo = this._listeningTo || (this._listeningTo = {});
@@ -1634,7 +1644,7 @@ angular.module('angular.models')
 
 
   /**
-   * @function Events#off
+   * @function BaseEventClass#off
    * @description Remove one or many callbacks. If `context` is null, removes all
    *              callbacks with that function. If `callback` is null, removes all
    *              callbacks for the event. If `name` is null, removes all bound
@@ -1642,10 +1652,10 @@ angular.module('angular.models')
    * @param  {String}   name     An event name
    * @param  {Function} callback An event handler
    * @param  {Mix}      context  An event handler's context
-   * @return {Events}
+   * @return {BaseEventClass}
    * @memberOf Core
    */
-  Events.prototype.off = function(name, callback, context) {
+  BaseEventClass.prototype.off = function(name, callback, context) {
     if (!this._events) { return this; }
     this._events = eventsApi(offApi, this._events, name, callback, {
       context: context,
@@ -1655,16 +1665,16 @@ angular.module('angular.models')
   };
 
   /**
-   * @function Events#stopListening
+   * @function BaseEventClass#stopListening
    * @description Tell this object to stop listening to either specific events ... or
    *              to every object it's currently listening to.
    * @param  {Object}   obj      An object whose an event should be stopped listen.
    * @param  {String}   name     An event name
    * @param  {Function} callback An event handler
-   * @return {Events}
+   * @return {BaseEventClass}
    * @memberOf Core
    */
-  Events.prototype.stopListening = function(obj, name, callback) {
+  BaseEventClass.prototype.stopListening = function(obj, name, callback) {
     var listeningTo = this._listeningTo;
     if (!listeningTo) { return this; }
 
@@ -1686,7 +1696,7 @@ angular.module('angular.models')
 
 
   /**
-   * @function Events#once
+   * @function BaseEventClass#once
    * @description Bind an event to only be triggered a single time. After the first time
    *              the callback is invoked, it will be removed. When multiple events are
    *              passed in using the space-separated syntax, the event will fire once for every
@@ -1694,10 +1704,10 @@ angular.module('angular.models')
    * @param  {String}   name     An event name
    * @param  {Function} callback An event handler
    * @param  {Mix}      context  An event handler's context
-   * @return {Events}
+   * @return {BaseEventClass}
    * @memberOf Core
    */
-  Events.prototype.once = function(name, callback, context) {
+  BaseEventClass.prototype.once = function(name, callback, context) {
     // Map the event into a `{event: once}` object.
     var events = eventsApi(onceMap, {}, name, callback, _.bind(this.off, this));
     return this.on(events, void 0, context);
@@ -1705,31 +1715,31 @@ angular.module('angular.models')
 
   //
   /**
-   * @function Events#listenToOnce
+   * @function BaseEventClass#listenToOnce
    * @description Inversion-of-control versions of `once`.
    * @param  {String}   name     An event name
    * @param  {Function} callback An event handler
    * @param  {Mix}      context  An event handler's context
-   * @return {Events}
+   * @return {BaseEventClass}
    */
-  Events.prototype.listenToOnce = function(obj, name, callback) {
+  BaseEventClass.prototype.listenToOnce = function(obj, name, callback) {
     // Map the event into a `{event: once}` object.
     var events = eventsApi(onceMap, {}, name, callback, _.bind(this.stopListening, this, obj));
     return this.listenTo(obj, events);
   };
 
   /**
-   * @function Events#trigger
+   * @function BaseEventClass#trigger
    * @description Trigger one or many events, firing all bound callbacks. Callbacks are
    *              passed the same arguments as `trigger` is, apart from the event name
    *              (unless you're listening on `"all"`, which will cause your callback to
    *              receive the true name of the event as the first argument).
    * @param  {String} name An event name
    * @param  {Mix[]}  args An event arguments
-   * @return {Events}
+   * @return {BaseEventClass}
    * @memberOf Core
    */
-  Events.prototype.trigger = function(name) {
+  BaseEventClass.prototype.trigger = function(name) {
     if (!this._events) { return this; }
 
     var length = Math.max(0, arguments.length - 1);
@@ -1743,57 +1753,65 @@ angular.module('angular.models')
   // Aliases for backwards compatibility.
   // NOTE: Deprecated
   /**
-   * @function Events#bind
+   * @function BaseEventClass#bind
    * @deprecated Will be removed soon
    * @memberOf Core
    */
-  Events.prototype.bind = Events.prototype.on;
+  BaseEventClass.prototype.bind = BaseEventClass.prototype.on;
   /**
-   * @function Events#unbind
+   * @function BaseEventClass#unbind
    * @deprecated Will be removed soon
    * @memberOf Core
    */
-  Events.prototype.unbind = Events.prototype.off;
+  BaseEventClass.prototype.unbind = BaseEventClass.prototype.off;
 
   /**
-   * @function Events~extend
+   * @function BaseEventClass~extend
    * @param {Object} proto An object whose own enumerable properties
    *                 constitute descriptors for the properties to be defined or modified.
    *                 See {@link Extend}
    * @memberOf Core
    */
-  Events.extend = Extend;
+  BaseEventClass.extend = Extend;
 
-  return Events;
-}]);
-
-'use strict';
-
-angular.module('angular.models')
-
-.factory('ValidationException', function () {
-  /**
-   * @class ValidationException
-   * @description Represents the exception that occurs during validation of a data field
-   * @augments Error
-   * @param {string} message An error message
-   */
-  function ValidationException (message) {
-    this.name = 'ValidationError';
-    this.message = message;
-  }
-
-  ValidationException.prototype = Object.create(Error.prototype);
-  ValidationException.prototype.constructor = ValidationException;
-
-  return ValidationException;
+  return BaseEventClass;
 });
 
 'use strict';
 
 angular.module('angular.models')
 
-.factory('Extend', ['_', function (_) {
+.factory('BaseExceptionClass', function(Extend) {
+  function BaseExceptionClass (message) {
+    this.name = 'Exception';
+    this.message = message;
+  }
+  BaseExceptionClass.extend = Extend;
+  return BaseExceptionClass;
+})
+
+.factory('ValidationExceptionClass', function (BaseExceptionClass) {
+  /**
+   * @class ValidationException
+   * @description Represents the exception that occurs during validation of a data field
+   * @augments Error
+   * @param {string} message An error message
+   */
+  return BaseExceptionClass.extend({});
+});
+
+'use strict';
+
+angular.module('angular.models')
+
+.factory('Extend', function (_) {
+  function hasProperty(obj, prop) {
+    return Object.prototype.hasOwnProperty.call(obj, prop);
+  }
+
+  function isDescriptor(obj) {
+    return _.isObject(obj) && (hasProperty(obj, 'value') || hasProperty(obj, 'get') || hasProperty(obj, 'set'));
+  }
 
   /**
    * @class Extend
@@ -1821,19 +1839,24 @@ angular.module('angular.models')
     var parent = this;
     var child;
 
-    if (proto && proto.hasOwnProperty('constructor')) {
-      child = proto.constructor.value;
+    if (proto && hasProperty(proto, 'constructor')) {
+      child = isDescriptor(proto.constructor) ? proto.constructor.value : proto.constructor;
     } else {
       child = function() { return parent.apply(this, arguments); };
     }
 
-    child.prototype = Object.create(parent.prototype, proto);
+    var properties = {};
+    _.each(proto, function(value, key) {
+      properties[key] = isDescriptor(value) ? value : {value: value};
+    });
+
+    child.prototype = Object.create(parent.prototype, properties);
 
     child.__super__ = parent.prototype;
 
     if (!_.isEmpty(statics)) {
       _.each(statics, function (value, key) {
-        child[key] = value;
+        Object.defineProperty(child, key, {value:value});
       });
     }
 
@@ -1841,20 +1864,20 @@ angular.module('angular.models')
   }
 
   return Extend;
-}]);
+});
 
 'use strict';
 
 angular.module('angular.models')
 
-.factory('isModel', ['BaseModelClass', function (BaseModelClass){
+.factory('isModel', function (BaseModelClass){
   'use strict';
   return function isModel(obj) {
     return obj instanceof BaseModelClass;
   };
-}])
+})
 
-.factory('WrapError', ['_', function (_) {
+.factory('WrapError', function (_) {
   'use strict';
   // Wrap an optional error callback with a fallback error event.
   function WrapError (model, reject, options) {
@@ -1872,7 +1895,7 @@ angular.module('angular.models')
   }
 
   return WrapError;
-}]);
+});
 
 'use strict';
 
@@ -1892,7 +1915,7 @@ angular.module('angular.models')
 
 angular.module('angular.models')
 
-.provider('Sync', function () {
+.provider('BaseSyncClass', function () {
   var proto;
 
   // The HTTP method map.
@@ -1910,9 +1933,9 @@ angular.module('angular.models')
     }
   };
 
-  this.$get = /*@ngInject*/ ['$http', '_', 'Events', function($http, _, Events) {
+  this.$get = /*@ngInject*/ function($http, _, Extend, BaseEventClass) {
     /**
-     * @class Sync
+     * @class BaseSyncClass
      * @description Override this function to change the manner in which Backbone persists
      *              models to the server. You will be passed the type of request, and the
      *              model in question. By default, makes a RESTful Ajax request
@@ -1930,13 +1953,13 @@ angular.module('angular.models')
      *              it difficult to read the body of `PUT` requests.
      * @memberOf Core
      */
-    function Sync () {}
+    function BaseSyncClass () {}
 
-    proto = Sync.prototype = Object.create(Events.prototype);
+    proto = BaseSyncClass.prototype = Object.create(BaseEventClass.prototype);
 
     /**
-     * @function Sync#sync
-     * @description Proxy `Sync` by default.
+     * @function BaseSyncClass#sync
+     * @description Proxy `BaseSyncClass` by default.
      *              Override this if you need custom syncing semantics for a particular model.
      * @param  {string} method  One of a CRUD operations. Ex: read, create, update or delete.
      * @param  {BaseModelClass} model An instance of a model class where the sync method have been called
@@ -2017,7 +2040,9 @@ angular.module('angular.models')
       }
     });
 
-    return Sync;
-  }];
+    BaseSyncClass.extend = Extend;
+
+    return BaseSyncClass;
+  };
 });
 })(window, window.angular);

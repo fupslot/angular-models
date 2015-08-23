@@ -4,7 +4,7 @@
 
 angular.module('angular.models')
 
-.factory('BaseModelClass', function ($q, $parse, Extend, Sync, WrapError, ValidationException, _) {
+.factory('BaseModelClass', function ($q, $parse, Extend, BaseSyncClass, WrapError, ValidationExceptionClass, _) {
 
   var proto;
 
@@ -113,7 +113,7 @@ angular.module('angular.models')
   }
 
 
-  proto = BaseModelClass.prototype = Object.create(Sync.prototype);
+  proto = BaseModelClass.prototype = Object.create(BaseSyncClass.prototype);
 
   /**
    * @member {Object} BaseModelClass#defaultQueryParams
@@ -317,7 +317,7 @@ angular.module('angular.models')
 
       // Run validation.
       var error = this._validate(attrs, options);
-      if (error instanceof ValidationException) {
+      if (error instanceof ValidationExceptionClass) {
         return false;
       }
 
@@ -739,7 +739,7 @@ angular.module('angular.models')
       }
       attrs = _.extend({}, this.attributes, attrs);
       var error = this.validationError = this.validate(attrs, options) || null;
-      if (!(error instanceof ValidationException)) {
+      if (!(error instanceof ValidationExceptionClass)) {
         return true;
       }
       this.trigger('invalid', this, error, _.extend(options, {validationError: error}));

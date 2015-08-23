@@ -7,8 +7,8 @@ describe('Core: Events', function () {
   beforeEach(module('angular.models'));
 
 
-  beforeEach(inject(function (_Events_) {
-    Events = _Events_;
+  beforeEach(inject(function (_BaseEventClass_) {
+    Events = _BaseEventClass_;
   }));
 
   describe('should be able', function () {

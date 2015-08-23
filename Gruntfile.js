@@ -195,7 +195,7 @@ module.exports = function (grunt) {
           base: {
             path: './',
             options: {
-              index: '<%= jasmineSpecRunner %>'
+              index: '<%= app.jasmineSpecRunner %>'
             }
           }
         }
