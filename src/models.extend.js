@@ -13,24 +13,24 @@ angular.module('angular.models')
 
   /**
    * @class Extend
-   * @memberOf Core
    *
    * @example <caption>To make a plain object extendable</caption>
    * var Base;
    * var Person;
    *
-   * Base = _.noop;
+   * Base = function (name) {
+   *   this._name = name;
+   * };
    * Base.extend = Extend;
    *
    * Person = Base.extend({
-   *   'print': {
-   *     value: function () {
-   *       return 'Person';
-   *     }
+   *   printName: function () {
+   *     return this._name;
    *   }
    * });
    *
-   * var person = new Person();
+   * var person = new Person('Eugene');
+   * person.printName(); //-> Eugene
    *
    */
   function Extend (proto, statics) {

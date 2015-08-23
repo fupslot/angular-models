@@ -38,7 +38,6 @@ angular.module('angular.models')
      *              instead of `application/json` with the model in a param named `model`.
      *              Useful when interfacing with server-side languages like **PHP** that make
      *              it difficult to read the body of `PUT` requests.
-     * @memberOf Core
      */
     function BaseSyncClass () {}
 
@@ -51,7 +50,6 @@ angular.module('angular.models')
      * @param  {string} method  One of a CRUD operations. Ex: read, create, update or delete.
      * @param  {BaseModelClass} model An instance of a model class where the sync method have been called
      * @param  {Object} options An options
-     * @memberOf Core
      * @return {Promise}
      *
      * @example <caption>How to re-map CRUD operations</caption>
@@ -132,7 +130,6 @@ angular.module('angular.models')
      * @param {Object} proto An object whose own enumerable properties
      *                 constitute descriptors for the properties to be defined or modified.
      *                 See {@link Extend}
-     * @memberOf Core
      */
     BaseSyncClass.extend = Extend;
 

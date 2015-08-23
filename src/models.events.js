@@ -10,7 +10,6 @@ angular.module('angular.models')
    *              custom events. You may bind with `on` or remove with `off` callback
    *              functions to an event; `trigger`-ing an event fires all callbacks in
    *              succession.
-   * @memberOf Core
    * @example <caption>Define a custom class based on BaseEventClass</caption>
    * var MyObject = BaseEventClass.extend({
    *   'doSomething': {
@@ -189,7 +188,6 @@ angular.module('angular.models')
    * @param  {Function} callback A callback funciton
    * @param  {Object}   context  A context
    * @return {BaseEventClass}
-   * @memberOf Core
    */
   BaseEventClass.prototype.on = function(name, callback, context) {
     return internalOn(this, name, callback, context);
@@ -203,7 +201,6 @@ angular.module('angular.models')
    * @param {string} name An event name
    * @param {Function} callback A callback function
    * @return {BaseEventClass}
-   * @memberOf Core
    */
   BaseEventClass.prototype.listenTo = function(obj, name, callback) {
     if (!obj) { return this; }
@@ -234,7 +231,6 @@ angular.module('angular.models')
    * @param  {Function} callback An event handler
    * @param  {Mix}      context  An event handler's context
    * @return {BaseEventClass}
-   * @memberOf Core
    */
   BaseEventClass.prototype.off = function(name, callback, context) {
     if (!this._events) { return this; }
@@ -253,7 +249,6 @@ angular.module('angular.models')
    * @param  {String}   name     An event name
    * @param  {Function} callback An event handler
    * @return {BaseEventClass}
-   * @memberOf Core
    */
   BaseEventClass.prototype.stopListening = function(obj, name, callback) {
     var listeningTo = this._listeningTo;
@@ -286,7 +281,6 @@ angular.module('angular.models')
    * @param  {Function} callback An event handler
    * @param  {Mix}      context  An event handler's context
    * @return {BaseEventClass}
-   * @memberOf Core
    */
   BaseEventClass.prototype.once = function(name, callback, context) {
     // Map the event into a `{event: once}` object.
@@ -318,7 +312,6 @@ angular.module('angular.models')
    * @param  {String} name An event name
    * @param  {Mix[]}  args An event arguments
    * @return {BaseEventClass}
-   * @memberOf Core
    */
   BaseEventClass.prototype.trigger = function(name) {
     if (!this._events) { return this; }
@@ -336,13 +329,11 @@ angular.module('angular.models')
   /**
    * @function BaseEventClass#bind
    * @deprecated Will be removed soon
-   * @memberOf Core
    */
   BaseEventClass.prototype.bind = BaseEventClass.prototype.on;
   /**
    * @function BaseEventClass#unbind
    * @deprecated Will be removed soon
-   * @memberOf Core
    */
   BaseEventClass.prototype.unbind = BaseEventClass.prototype.off;
 
@@ -351,7 +342,6 @@ angular.module('angular.models')
    * @param {Object} proto An object whose own enumerable properties
    *                 constitute descriptors for the properties to be defined or modified.
    *                 See {@link Extend}
-   * @memberOf Core
    */
   BaseEventClass.extend = Extend;
 

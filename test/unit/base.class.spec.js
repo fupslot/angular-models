@@ -10,23 +10,26 @@ describe('BaseClass', function () {
   }));
 
   describe('be able to extend BaseClass', function(){
-    var MyClass;
+    var Person;
 
     beforeEach(function(){
-      MyClass = BaseClass.extend({
-        constructor: function(attrs) {
-          this.className = 'MyClass';
-          this.attributes = attrs;
+      Person = BaseClass.extend({
+        constructor: function(name) {
+          this._name = name;
+        },
+        name: {
+          get: function() {
+            return this._name;
+          }
         }
       });
     });
 
     it('use a constructor', function() {
-      var myClass = new MyClass({item: 'Table'});
-      expect(myClass instanceof MyClass);
-      expect(myClass instanceof BaseClass);
-      expect(myClass.className).toEqual('MyClass');
-      expect(myClass.attributes).toBeDefined();
+      var person = new Person('Eugene');
+      expect(person instanceof Person);
+      expect(person instanceof BaseClass);
+      expect(person.name).toEqual('Eugene');
     });
   });
 });
