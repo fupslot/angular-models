@@ -2019,7 +2019,7 @@ angular.module('angular.models')
         // Obtains a dynamic query params,
         // NOTE: must solve angular circular dependency issue
         // if (isModel(model)) {
-        if (model.getQueryParams) {
+        if (model && model.getQueryParams) {
           dynamicQueryParams = model.getQueryParams();
         }
         // Query params
