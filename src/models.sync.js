@@ -3,7 +3,6 @@
 angular.module('angular.models')
 
 .provider('BaseSyncClass', function () {
-  var proto;
 
   // The HTTP method map.
   var CRUD_MAP = {
@@ -39,46 +38,47 @@ angular.module('angular.models')
      *              Useful when interfacing with server-side languages like **PHP** that make
      *              it difficult to read the body of `PUT` requests.
      */
-    function BaseSyncClass () {}
+    // function BaseSyncClass () {}
 
-    proto = BaseSyncClass.prototype = Object.create(BaseEventClass.prototype);
+    // proto = BaseSyncClass.prototype = Object.create(BaseEventClass.prototype);
 
-    /**
-     * @function BaseSyncClass#sync
-     * @description Proxy `BaseSyncClass` by default.
-     *              Override this if you need custom syncing semantics for a particular model.
-     * @param  {string} method  One of a CRUD operations. Ex: read, create, update or delete.
-     * @param  {BaseModelClass} model An instance of a model class where the sync method have been called
-     * @param  {Object} options An options
-     * @return {Promise}
-     *
-     * @example <caption>How to re-map CRUD operations</caption>
-     * angular.module('myProject', ['angular.models'])
-     *   // Default map:
-     *   //  'create' -> 'POST'
-     *   //  'read' -> 'GET'
-     *   //  'update' -> 'PUT'
-     *   //  'delete' -> 'DELETE'
-     *   //  'patch' -> 'PATCH'
-     *   .config(function (SyncProvider) {
-     *     // It will force BaseModelClass and BaseCollectionClass
-     *     // invoke a 'POST' method instead of 'GET'.
-     *     // NOTE: All you models and collection will inherit that behaviour
-     *     // as long as you won't override it for a particular class.
-     *     SyncProvider.setOperation('read', 'POST');
-     *   })
-     *   .factory('MyModelClass', function (BaseModelClass) {
-     *     return BaseModelClass.extend({
-     *       urlRoot: { value: '/api/models'}
-     *     });
-     *   })
-     *   .controller(function(MyModelClass){
-     *     var myModel = new MyModelClass();
-     *     myModel.fetch(); //-> Will reserve a POST request
-     *   });
-     */
-    Object.defineProperty(proto, 'sync', {
-      value: function (method, model, options) {
+    return BaseEventClass.extend({
+
+      /**
+       * @function BaseSyncClass#sync
+       * @description Proxy `BaseSyncClass` by default.
+       *              Override this if you need custom syncing semantics for a particular model.
+       * @param  {string} method  One of a CRUD operations. Ex: read, create, update or delete.
+       * @param  {BaseModelClass} model An instance of a model class where the sync method have been called
+       * @param  {Object} options An options
+       * @return {Promise}
+       *
+       * @example <caption>How to re-map CRUD operations</caption>
+       * angular.module('myProject', ['angular.models'])
+       *   // Default map:
+       *   //  'create' -> 'POST'
+       *   //  'read' -> 'GET'
+       *   //  'update' -> 'PUT'
+       *   //  'delete' -> 'DELETE'
+       *   //  'patch' -> 'PATCH'
+       *   .config(function (SyncProvider) {
+       *     // It will force BaseModelClass and BaseCollectionClass
+       *     // invoke a 'POST' method instead of 'GET'.
+       *     // NOTE: All you models and collection will inherit that behaviour
+       *     // as long as you won't override it for a particular class.
+       *     SyncProvider.setOperation('read', 'POST');
+       *   })
+       *   .factory('MyModelClass', function (BaseModelClass) {
+       *     return BaseModelClass.extend({
+       *       urlRoot: { value: '/api/models'}
+       *     });
+       *   })
+       *   .controller(function(MyModelClass){
+       *     var myModel = new MyModelClass();
+       *     myModel.fetch(); //-> Will reserve a POST request
+       *   });
+       */
+      sync: function (method, model, options) {
         var dynamicQueryParams = {};
 
         method = CRUD_MAP[method];
@@ -90,7 +90,7 @@ angular.module('angular.models')
         options.method = options.method || method;
 
         // Default JSON-request options.
-        var params = _.pick(options, ['method', 'cache', 'timeout', 'params']);
+        var params = _.pick(options, ['method', 'cache', 'timeout', 'params', 'withCredentials', 'xsrfHeaderName', 'xsrfCookieName']);
 
         params.headers = {};
         params.headers['accept'] = 'application/json, text/plain, */*';
@@ -116,23 +116,41 @@ angular.module('angular.models')
           params.data = JSON.stringify(options.attrs || model.toJSON(options));
         }
 
+        // If no cache specified we going to use a default value
+        if (!params.hasOwnProperty('cache')) {
+          params.cache = this.change;
+        }
+
+        params.transformResponse = this.transformResponse;
+
         options.success = options.success || angular.noop;
         options.error = options.error || angular.noop;
 
         return $http(params)
           .success(options.success)
           .error(options.error);
+      },
+
+      /**
+       * @var cache
+       * @description If true, a default $http cache will be used to cache the GET request
+       * @type {Boolean}
+       */
+      cache: false,
+
+      /**
+       * @description A transform function or an array of such functions.
+       *              The transform function takes the http response body,
+       *              headers and status and returns its transformed (typically deserialized)
+       *              version.
+       * @param  {Object|Array} data  A response object or an array
+       * @param  {Object} headers Headers getter
+       * @param  {Object} status  A status that server respond with
+       * @return {Object} A transformed response
+       */
+      transformResponse: function(data) {
+        return data;
       }
-    });
-
-    /**
-     * @function Sync~extend
-     * @param {Object} proto An object whose own enumerable properties
-     *                 constitute descriptors for the properties to be defined or modified.
-     *                 See {@link Extend}
-     */
-    BaseSyncClass.extend = Extend;
-
-    return BaseSyncClass;
+    }, {extend: Extend});
   };
 });
