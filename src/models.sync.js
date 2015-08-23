@@ -127,6 +127,13 @@ angular.module('angular.models')
       }
     });
 
+    /**
+     * @function Sync~extend
+     * @param {Object} proto An object whose own enumerable properties
+     *                 constitute descriptors for the properties to be defined or modified.
+     *                 See {@link Extend}
+     * @memberOf Core
+     */
     BaseSyncClass.extend = Extend;
 
     return BaseSyncClass;

@@ -19,17 +19,17 @@ angular.module('angular.models', []);
 
 angular.module('angular.models')
 
-.factory('BaseClass', function (Extend) {
+.factory('BaseClass', ['Extend', function (Extend) {
   function BaseClass(){}
   BaseClass.extend = Extend;
   return BaseClass;
-});
+}]);
 
 'use strict';
 
 angular.module('angular.models')
 
-.factory('BaseCollectionClass', function ($q, $parse, Extend, BaseSyncClass, WrapError, _, isModel) {
+.factory('BaseCollectionClass', ['$q', '$parse', 'Extend', 'BaseSyncClass', 'WrapError', '_', 'isModel', function ($q, $parse, Extend, BaseSyncClass, WrapError, _, isModel) {
 
   var proto;
 
@@ -614,7 +614,7 @@ angular.module('angular.models')
   BaseCollectionClass.extend = Extend;
 
   return BaseCollectionClass;
-});
+}]);
 
 'use strict';
 
@@ -622,7 +622,7 @@ angular.module('angular.models')
 
 angular.module('angular.models')
 
-.factory('BaseModelClass', function ($q, $parse, Extend, BaseSyncClass, WrapError, ValidationExceptionClass, _) {
+.factory('BaseModelClass', ['$q', '$parse', 'Extend', 'BaseSyncClass', 'WrapError', 'ValidationExceptionClass', '_', function ($q, $parse, Extend, BaseSyncClass, WrapError, ValidationExceptionClass, _) {
 
   var proto;
 
@@ -1401,7 +1401,7 @@ angular.module('angular.models')
   BaseModelClass.extend = Extend;
 
   return BaseModelClass;
-});
+}]);
 
 'use strict';
 
@@ -1421,7 +1421,7 @@ angular.module('angular.models.config', [])
 
 angular.module('angular.models')
 
-.service('BaseEventClass', function (Extend, _) {
+.service('BaseEventClass', ['Extend', '_', function (Extend, _) {
 
   /**
    * @class BaseEventClass
@@ -1775,22 +1775,22 @@ angular.module('angular.models')
   BaseEventClass.extend = Extend;
 
   return BaseEventClass;
-});
+}]);
 
 'use strict';
 
 angular.module('angular.models')
 
-.factory('BaseExceptionClass', function(Extend) {
+.factory('BaseExceptionClass', ['Extend', function(Extend) {
   function BaseExceptionClass (message) {
     this.name = 'Exception';
     this.message = message;
   }
   BaseExceptionClass.extend = Extend;
   return BaseExceptionClass;
-})
+}])
 
-.factory('ValidationExceptionClass', function (BaseExceptionClass) {
+.factory('ValidationExceptionClass', ['BaseExceptionClass', function (BaseExceptionClass) {
   /**
    * @class ValidationException
    * @description Represents the exception that occurs during validation of a data field
@@ -1798,13 +1798,13 @@ angular.module('angular.models')
    * @param {string} message An error message
    */
   return BaseExceptionClass.extend({});
-});
+}]);
 
 'use strict';
 
 angular.module('angular.models')
 
-.factory('Extend', function (_) {
+.factory('Extend', ['_', function (_) {
   function hasProperty(obj, prop) {
     return Object.prototype.hasOwnProperty.call(obj, prop);
   }
@@ -1864,20 +1864,20 @@ angular.module('angular.models')
   }
 
   return Extend;
-});
+}]);
 
 'use strict';
 
 angular.module('angular.models')
 
-.factory('isModel', function (BaseModelClass){
+.factory('isModel', ['BaseModelClass', function (BaseModelClass){
   'use strict';
   return function isModel(obj) {
     return obj instanceof BaseModelClass;
   };
-})
+}])
 
-.factory('WrapError', function (_) {
+.factory('WrapError', ['_', function (_) {
   'use strict';
   // Wrap an optional error callback with a fallback error event.
   function WrapError (model, reject, options) {
@@ -1895,7 +1895,7 @@ angular.module('angular.models')
   }
 
   return WrapError;
-});
+}]);
 
 'use strict';
 
@@ -1933,7 +1933,7 @@ angular.module('angular.models')
     }
   };
 
-  this.$get = /*@ngInject*/ function($http, _, Extend, BaseEventClass) {
+  this.$get = /*@ngInject*/ ['$http', '_', 'Extend', 'BaseEventClass', function($http, _, Extend, BaseEventClass) {
     /**
      * @class BaseSyncClass
      * @description Override this function to change the manner in which Backbone persists
@@ -2040,9 +2040,16 @@ angular.module('angular.models')
       }
     });
 
+    /**
+     * @function Sync~extend
+     * @param {Object} proto An object whose own enumerable properties
+     *                 constitute descriptors for the properties to be defined or modified.
+     *                 See {@link Extend}
+     * @memberOf Core
+     */
     BaseSyncClass.extend = Extend;
 
     return BaseSyncClass;
-  };
+  }];
 });
 })(window, window.angular);

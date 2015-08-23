@@ -119,7 +119,7 @@ module.exports = function (grunt) {
           sourceMapName: '<%= app.packageNameMap %>'
         },
         files: {
-          '<%= app.packageNameMin %>': '<%= app.src %>'
+          '<%= app.packageNameMin %>': '<%= app.packageName %>'
         }
       }
     },
@@ -204,6 +204,15 @@ module.exports = function (grunt) {
   });
 
   grunt.registerTask('build', ['clean:dist', 'eslint', 'karma:unit', 'concat:dist', 'ngAnnotate:dist', 'uglify:dist']);
+
+  grunt.registerTask('jasmine', function(target){
+    if (target === 'build') {
+      grunt.task.run(['injector:build', 'injector:spec', 'wiredep:jasmine', 'concat:dist', 'ngAnnotate:dist', 'uglify:dist', 'connect:test']);
+    }
+    else {
+      grunt.task.run(['injector:src', 'injector:spec', 'wiredep:jasmine', 'connect:test']);
+    }
+  });
 
   grunt.registerTask('test', function(target){
     if (target === 'build') {
