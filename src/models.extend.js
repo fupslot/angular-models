@@ -15,41 +15,34 @@ angular.module('angular.models')
     var chain;
     var descriptor;
 
-    // descriptor = proto[propName] = {};
+    function getDescriptor() {
+      if (!descriptor) {
+        descriptor = proto[propName] = {};
+      }
+      return descriptor;
+    }
 
     function defineDescriptorPropertySetter(propName) {
       return function(value) {
-        if (!descriptor) {
-          descriptor = proto[propName] = {};
-        }
-        descriptor[propName] = (value == null) ? true : value;
+        getDescriptor()[propName] = (value == null) ? true : value;
       };
     }
-    // NOTE: Find elegant solution to create descriptor on demand
+    // NOTE: Find an elegant solution to create a descriptor on demand
     chain = {
       getter: function(){
-        if (!descriptor) {
-          descriptor = proto[propName] = {};
-        }
-        descriptor.get = function() {
+        getDescriptor().get = function() {
           return this.get(propName);
         };
         return chain;
       },
       setter: function(){
-        if (!descriptor) {
-          descriptor = proto[propName] = {};
-        }
-        descriptor.set = function(value) {
+        getDescriptor().set = function(value) {
           this.set(propName, value);
         };
         return chain;
       },
       value: function(value) {
-        if (!descriptor) {
-          descriptor = proto[propName] = {};
-        }
-        descriptor.value = value;
+        getDescriptor().value = value;
         return chain;
       },
       writable: defineDescriptorPropertySetter('writable'),
