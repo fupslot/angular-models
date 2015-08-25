@@ -271,4 +271,40 @@ describe('Core: BaseModelClass', function () {
       });
     });
   });
+
+  describe('auto declaration for getters and setters', function(){
+    var MyClass;
+
+    beforeEach(function(){
+      MyClass = BaseModelClass.extend({
+        $declare: {
+          title: 'get; set;',
+          name: 'get;'
+        },
+
+        defaults: {
+          name: 'Eugene'
+        }
+      });
+    });
+
+    it('should have a getter and setter for title property', function(){
+      var model = new MyClass();
+      expect(model.title).toBeUndefined();
+      model.title = 'title';
+      expect(model.title).toEqual('title');
+    });
+
+    it('should have a getter only for a name property', function(){
+      var model = new MyClass();
+      expect(model.name).toEqual('Eugene');
+      try {
+        model.name = 'Oshri';
+      }
+      catch(e) {
+        expect(model.name).toEqual('Eugene');
+      }
+    });
+  });
+
 });

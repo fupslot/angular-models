@@ -11,6 +11,54 @@ angular.module('angular.models')
     return _.isObject(obj) && (hasProperty(obj, 'value') || hasProperty(obj, 'get') || hasProperty(obj, 'set'));
   }
 
+  function declare(proto, propName) {
+    var chain;
+    var descriptor;
+
+    // descriptor = proto[propName] = {};
+
+    function defineDescriptorPropertySetter(propName) {
+      return function(value) {
+        if (!descriptor) {
+          descriptor = proto[propName] = {};
+        }
+        descriptor[propName] = (value == null) ? true : value;
+      };
+    }
+    // NOTE: Find elegant solution to create descriptor on demand
+    chain = {
+      getter: function(){
+        if (!descriptor) {
+          descriptor = proto[propName] = {};
+        }
+        descriptor.get = function() {
+          return this.get(propName);
+        };
+        return chain;
+      },
+      setter: function(){
+        if (!descriptor) {
+          descriptor = proto[propName] = {};
+        }
+        descriptor.set = function(value) {
+          this.set(propName, value);
+        };
+        return chain;
+      },
+      value: function(value) {
+        if (!descriptor) {
+          descriptor = proto[propName] = {};
+        }
+        descriptor.value = value;
+        return chain;
+      },
+      writable: defineDescriptorPropertySetter('writable'),
+      enumerable: defineDescriptorPropertySetter('enumerable'),
+      configurable: defineDescriptorPropertySetter('configurable')
+    };
+    return chain;
+  }
+
   /**
    * @class Extend
    *
@@ -36,6 +84,8 @@ angular.module('angular.models')
   function Extend (proto, statics) {
     var parent = this;
     var child;
+    var properties = {};
+    var declaration;
 
     if (proto && hasProperty(proto, 'constructor')) {
       child = isDescriptor(proto.constructor) ? proto.constructor.value : proto.constructor;
@@ -43,7 +93,23 @@ angular.module('angular.models')
       child = function() { return parent.apply(this, arguments); };
     }
 
-    var properties = {};
+    //
+    properties = {};
+    // Properties declared by a user
+    declaration = _.extend({}, proto.$declare);
+    delete proto.$declare;
+
+    _.each(declaration, function (value, key){
+      if (typeof value === 'string') {
+        var getter = value.indexOf('get;') !== -1;
+        var setter = value.indexOf('set;') !== -1;
+        var descriptor = declare(properties, key);
+
+        getter && descriptor.getter();
+        setter && descriptor.setter();
+      }
+    });
+
     _.each(proto, function(value, key) {
       properties[key] = isDescriptor(value) ? value : {value: value};
     });
