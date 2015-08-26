@@ -15,7 +15,7 @@ angular.module('angular.models', []);
 
 angular.module('angular.models')
 
-.factory('BaseClass', ['Extend', function (Extend) {
+.factory('BaseClass', function (Extend) {
   /**
    * @class BaseClass
    * @description A base class constructor
@@ -39,13 +39,13 @@ angular.module('angular.models')
   BaseClass.extend = Extend;
   BaseClass.typeOf = function(obj) {return obj instanceof this;};
   return BaseClass;
-}]);
+});
 
 'use strict';
 
 angular.module('angular.models')
 
-.factory('BaseCollectionClass', ['$q', '$parse', 'Extend', 'BaseSyncClass', 'WrapError', '_', 'isModel', function ($q, $parse, Extend, BaseSyncClass, WrapError, _, isModel) {
+.factory('BaseCollectionClass', function ($q, $parse, Extend, BaseSyncClass, WrapError, _, isModel) {
 
   var proto;
 
@@ -630,13 +630,13 @@ angular.module('angular.models')
   BaseCollectionClass.extend = Extend;
 
   return BaseCollectionClass;
-}]);
+});
 
 'use strict';
 
 angular.module('angular.models')
 
-.service('BaseEventClass', ['BaseClass', '_', function (BaseClass, _) {
+.service('BaseEventClass', function (BaseClass, _) {
 
   /**
    * @class BaseEventClass
@@ -983,15 +983,15 @@ angular.module('angular.models')
   // BaseEventClass.extend = Extend;
 
   return BaseEventClass;
-}]);
+});
 
 'use strict';
 
 angular.module('angular.models')
 
-.factory('BaseModelClass', ['$q', '$parse', 'Extend', 'BaseSyncClass', 'WrapError', 'ValidationExceptionClass', '_', function ($q, $parse, Extend, BaseSyncClass, WrapError, ValidationExceptionClass, _) {
+.factory('BaseModelClass', function ($q, $parse, BaseSyncClass, WrapError, ValidationExceptionClass, _) {
 
-  var proto;
+  // var proto;
 
   /**
    * Throw a change event.
@@ -1017,190 +1017,172 @@ angular.module('angular.models')
    * Throw a invalid event.
    * @fires BaseModelClass#invalid
    */
+  var BaseModelClass;
 
-  /**
-   * @class BaseModelClass
-   * @description This base class represents common methods of a model
-   * @param {Object} attributes A model's attributes. A key-value object.
-   * @param {Object} options    An options.
-   *
-   * @example <caption>Defining a Book class</caption>
-   * var Book = BaseModelClass.extend({
-   *   'defaults': {
-   *     value: {
-   *       title: Untitled book
-   *     },
-   *     enumerable: true
-   *   }
-   * });
-   *
-   * var book = new Book({title: 'Sherlock Holmes'});
-   * console.log(book.get('title')); //-> Sherlock Holmes
-   *
-   * @example <caption>Defining a Book class with a custom constrictor, custom accessors and default attributes</caption>
-   * var Book = BaseModelClass.extend({
-   *   'defaults': {
-   *     value: {
-   *       title: 'Untitled book'
-   *     }
-   *   },
-   *
-   *   constructor: {
-   *     value: function () {
-   *       // do somethig before the super class constructor call
-   *
-   *       // If the constructor was re-defined, you must
-   *       // call the super class constructor manually
-   *       BaseModelClass.apply(this, arguments);
-   *
-   *       // do somethig after the super class constructor call
-   *     }
-   *   },
-   *
-   *   title: {
-   *     get: function () {
-   *       return this.get('title');
-   *     },
-   *     set: function(value) {
-   *       this.set('title', value);
-   *     },
-   *     enumerable: true
-   *   }
-   * });
-   *
-   * var book = new Book({title: 'Sherlock Holmes'});
-   * console.log(book.title); //-> Sherlock Holmes
-   */
-  function BaseModelClass (attributes, options) {
-    var attrs = attributes || {};
-    options = options || {};
-    this.cid = _.uniqueId('c');
-    this.attributes = {};
+  BaseModelClass = BaseSyncClass.extend({
+    /**
+     * @class BaseModelClass
+     * @description This base class represents common methods of a model
+     * @param {Object} attributes A model's attributes. A key-value object.
+     * @param {Object} options    An options.
+     *
+     * @example <caption>Defining a Book class</caption>
+     * var Book = BaseModelClass.extend({
+     *   'defaults': {
+     *     value: {
+     *       title: Untitled book
+     *     },
+     *     enumerable: true
+     *   }
+     * });
+     *
+     * var book = new Book({title: 'Sherlock Holmes'});
+     * console.log(book.get('title')); //-> Sherlock Holmes
+     *
+     * @example <caption>Defining a Book class with a custom constrictor, custom accessors and default attributes</caption>
+     * var Book = BaseModelClass.extend({
+     *   'defaults': {
+     *     value: {
+     *       title: 'Untitled book'
+     *     }
+     *   },
+     *
+     *   constructor: {
+     *     value: function () {
+     *       // do somethig before the super class constructor call
+     *
+     *       // If the constructor was re-defined, you must
+     *       // call the super class constructor manually
+     *       BaseModelClass.apply(this, arguments);
+     *
+     *       // do somethig after the super class constructor call
+     *     }
+     *   },
+     *
+     *   title: {
+     *     get: function () {
+     *       return this.get('title');
+     *     },
+     *     set: function(value) {
+     *       this.set('title', value);
+     *     },
+     *     enumerable: true
+     *   }
+     * });
+     *
+     * var book = new Book({title: 'Sherlock Holmes'});
+     * console.log(book.title); //-> Sherlock Holmes
+     */
+    constructor: function(attributes, options){
+      var attrs = attributes || {};
+      options = options || {};
+      this.cid = _.uniqueId('c');
+      this.attributes = {};
 
-    if (options.parse) {
-      attrs = this.parse(attrs, options) || {};
-    }
-    if (options.collection) {
-      this.collection = options.collection;
-    }
+      if (options.parse) {
+        attrs = this.parse(attrs, options) || {};
+      }
+      if (options.collection) {
+        this.collection = options.collection;
+      }
 
-    attrs = _.defaults({}, attrs, _.result(this, 'defaults'));
+      attrs = _.defaults({}, attrs, _.result(this, 'defaults'));
 
-    this.set(attrs, options);
-    this.changed = {};
-    this.initialize.apply(this, arguments);
-  }
+      this.set(attrs, options);
+      this.changed = {};
+      this.initialize.apply(this, arguments);
+    },
 
-
-  proto = BaseModelClass.prototype = Object.create(BaseSyncClass.prototype);
-
-  /**
-   * @member {Object} BaseModelClass#defaultQueryParams
-   * @description A hash of query parameters.
-   *
-   * @example <caption>Define a custom model with a set of query params</caption>
-   * var MyModel = BaseModelClass.extend({
-   *   urlRoot: {value: '/api/models'},
-   *   paramSort: {
-   *     value: function () {
-   *       // this - reference to a current model's instance
-   *       if (this.get('sort') === true) {
-   *         return 'abc';
-   *       }
-   *       else {
-   *         return 'desc';
-   *       }
-   *     }
-   *   },
-   *   // NOTE: Order is not guaranteed.
-   *   defaultQueryParams: {
-   *     value: {
-   *       // Defining a static parameter 'type' with a value 'single'
-   *       'type': 'single',
-   *       // Symbol '@' tells to a model to extract
-   *       // a parameter's value from a model's attribute set
-   *       'id': '@id',
-   *       // Symbol '=' tell to a model to evaluate a paramSort method
-   *       // and use the returned value as a value for a query parameter.
-   *       // If method was not defined, a 'null' value will be applied.
-   *       'sort': '=paramSort'
-   *     }
-   *   }
-   * });
-   *
-   * var myModel = new MyModel({id: 1});
-   * myModel.fetch(); //-> GET /api/models/1?id=1&type=single&sort=desc
-   *
-   * myModel.set('sort', true);
-   * myModel.fetch(); //-> GET /api/models/1?id=1&type=single&sort=abc
-   */
-  Object.defineProperty(proto, 'defaultQueryParams', {
-    value: {}
-  });
-
-  /**
-   * @member {object} BaseModelClass#changed
-   * @description A hash of attributes whose current and previous value differ.
-   * @type {object}
-   */
-  Object.defineProperty(proto, 'changed', {
-    value: null,
-    writable: true
-  });
+    /**
+     * @member {Object} BaseModelClass#defaultQueryParams
+     * @description A hash of query parameters.
+     *
+     * @example <caption>Define a custom model with a set of query params</caption>
+     * var MyModel = BaseModelClass.extend({
+     *   urlRoot: {value: '/api/models'},
+     *   paramSort: {
+     *     value: function () {
+     *       // this - reference to a current model's instance
+     *       if (this.get('sort') === true) {
+     *         return 'abc';
+     *       }
+     *       else {
+     *         return 'desc';
+     *       }
+     *     }
+     *   },
+     *   // NOTE: Order is not guaranteed.
+     *   defaultQueryParams: {
+     *     value: {
+     *       // Defining a static parameter 'type' with a value 'single'
+     *       'type': 'single',
+     *       // Symbol '@' tells to a model to extract
+     *       // a parameter's value from a model's attribute set
+     *       'id': '@id',
+     *       // Symbol '=' tell to a model to evaluate a paramSort method
+     *       // and use the returned value as a value for a query parameter.
+     *       // If method was not defined, a 'null' value will be applied.
+     *       'sort': '=paramSort'
+     *     }
+     *   }
+     * });
+     *
+     * var myModel = new MyModel({id: 1});
+     * myModel.fetch(); //-> GET /api/models/1?id=1&type=single&sort=desc
+     *
+     * myModel.set('sort', true);
+     * myModel.fetch(); //-> GET /api/models/1?id=1&type=single&sort=abc
+     */
+    defaultQueryParams: {value: {}, writable: true},
 
 
-  /**
-   * @member {object} BaseModelClass#validationError
-   * @description The value returned during the last failed validation.
-   * @type {object}
-   */
-  Object.defineProperty(proto, 'validationError', {
-    value: null,
-    writable: true
-  });
+    /**
+     * @member {object} BaseModelClass#changed
+     * @description A hash of attributes whose current and previous value differ.
+     * @type {object}
+     */
+    changed: {value: null, writable: true},
 
 
-  /**
-   * @member {string} BaseModelClass#idAttribute
-   * @description The default name for the JSON `id` attribute is `"id"`. MongoDB and
-   *              CouchDB users may want to set this to `"_id"`.
-   * @type {string}
-   */
-  Object.defineProperty(proto, 'idAttribute', {
-    value: 'id',
-    writable: true
-  });
+    /**
+     * @member {object} BaseModelClass#validationError
+     * @description The value returned during the last failed validation.
+     * @type {object}
+     */
+    validationError: {value: null, writable: true},
 
 
-  /**
-   * @function BaseModelClass#initialize
-   * @description Initialize is an empty function by default. Override it with your own
-   *              initialization logic.
-   */
-  Object.defineProperty(proto, 'initialize', {
-    value: _.noop,
-    writable: true
-  });
+    /**
+     * @member {string} BaseModelClass#idAttribute
+     * @description The default name for the JSON `id` attribute is `"id"`. MongoDB and
+     *              CouchDB users may want to set this to `"_id"`.
+     * @type {string}
+     */
+    idAttribute: {value: 'id', writable: true},
 
 
-  /**
-   * @member {array} BaseModelClass#serializeModel
-   * @description Holds a list of models which will be included into the model when method 'toJSON' called
-   * @type {array}
-   */
-  Object.defineProperty(proto, 'serializeModel', {
-    value: [],
-    writable: true
-  });
+    /**
+     * @function BaseModelClass#initialize
+     * @description Initialize is an empty function by default. Override it with your own
+     *              initialization logic.
+     */
+    initialize: {value: _.noop, writable: true},
 
 
-  /**
-   * @function BaseModelClass#toJSON
-   * @description  Return a copy of the model's `attributes` object.
-   * @return {JSON}
-   */
-  Object.defineProperty(proto, 'toJSON', {
-    value: function toJSON () {
+    /**
+     * @member {array} BaseModelClass#serializeModel
+     * @description Holds a list of models which will be included into the model when method 'toJSON' called
+     * @type {array}
+     */
+    serializeModel: {value: [], writable: true},
+
+
+    /**
+     * @function BaseModelClass#toJSON
+     * @description  Return a copy of the model's `attributes` object.
+     * @return {JSON}
+     */
+    toJSON: function toJSON() {
       var self = this;
       var obj = _.cloneDeep(this.attributes);
 
@@ -1209,63 +1191,55 @@ angular.module('angular.models')
           obj[key] = ('toJSON' in self[key]) ? self[key].toJSON() : null;
         });
       }
-
       return obj;
-    }
-  });
+    },
 
 
-  /**
-   * @function BaseModelClass#get
-   * @description Get the value of an attribute.
-   * @param {string} attr A field name
-   */
-  Object.defineProperty(proto, 'get', {
-    value: function get (attr) {
+    /**
+     * @function BaseModelClass#get
+     * @description Get the value of an attribute.
+     * @param {string} attr A field name
+     */
+    get: function get (attr) {
       // NOTE: Improve
       // if field name has a dot use $parse othewise return a value from attributes
       var getter = $parse(attr);
       return getter(this.attributes);
-    }
-  });
+    },
 
 
-  /**
-   * @function BaseModelClass#is
-   * @param  {string} attr A field name
-   * @return {boolean} Returns true if a given field exists in a current instance of BaseModelClass
-   */
-  Object.defineProperty(proto, 'is', {
-    value: function is (attr) {
+    /**
+     * @function BaseModelClass#is
+     * @param  {string} attr A field name
+     * @return {boolean} Returns true if a given field exists in a current instance of BaseModelClass
+     */
+    is: function is (attr) {
       return !!this.attributes[attr];
-    }
-  });
+    },
 
 
-  /**
-   * @function BaseModelClass#has
-   * @description Returns `true` if the attribute contains a value that is not null
-   *              or undefined.
-   * @param  {string} attr
-   * @return {boolean}
-   */
-  Object.defineProperty(proto, 'has', {
-    value: function has (attr) {
+    /**
+     * @function BaseModelClass#has
+     * @description Returns `true` if the attribute contains a value that is not null
+     *              or undefined.
+     * @param  {string} attr
+     * @return {boolean}
+     */
+    has: function has (attr) {
       return this.get(attr) != null;
-    }
-  });
+    },
 
-  /**
-   * @function BaseModelClass#set
-   * @description Set a hash of attributes (one or many) on the model.
-   *              If any of the attributes change the model's state, a "change" event
-   *              will be triggered on the model. Change events for specific attributes
-   *              are also triggered, and you can bind to those as well,
-   *              for example: change:title, and change:content. You may also pass individual keys and values.
-   * @return {BaseModelClass} Return a reference on a current instance of BaseModelClass
-   */
-  Object.defineProperty(proto, 'set', {
-    value: function set (key, val, options) {
+
+    /**
+     * @function BaseModelClass#set
+     * @description Set a hash of attributes (one or many) on the model.
+     *              If any of the attributes change the model's state, a "change" event
+     *              will be triggered on the model. Change events for specific attributes
+     *              are also triggered, and you can bind to those as well,
+     *              for example: change:title, and change:content. You may also pass individual keys and values.
+     * @return {BaseModelClass} Return a reference on a current instance of BaseModelClass
+     */
+    set: function set (key, val, options) {
       var attr, attrs, unset, changes, silent, changing, prev, current;
       if (key == null) {
         return this;
@@ -1354,66 +1328,59 @@ angular.module('angular.models')
       this._pending = false;
       this._changing = false;
       return this;
-    }
-  });
+    },
 
 
-  /**
-   * @function BaseModelClass#unset
-   * @description Remove an attribute from the model, firing `"change"`. `unset` is a noop
-   *              if the attribute doesn't exist.
-   */
-  Object.defineProperty(proto, 'unset', {
-    value: function unset (attr, options) {
+    /**
+     * @function BaseModelClass#unset
+     * @description Remove an attribute from the model, firing `"change"`. `unset` is a noop
+     *              if the attribute doesn't exist.
+     */
+    unset: function unset (attr, options) {
       return this.set(attr, void 0, _.extend({}, options, {unset: true}));
-    }
-  });
+    },
 
 
-  /**
-   * @function BaseModelClass#clear
-   * @description Clear all attributes on the model, firing `"change"`.
-   */
-  Object.defineProperty(proto, 'clear', {
-    value: function clear (options) {
+    /**
+     * @function BaseModelClass#clear
+     * @description Clear all attributes on the model, firing `"change"`.
+     */
+    clear: function clear (options) {
       var attrs = {};
       for (var key in this.attributes) {
         attrs[key] = void 0;
       }
       return this.set(attrs, _.extend({}, options, {unset: true}));
-    }
-  });
+    },
 
-  /**
-   * @function BaseModelClass#hasChange
-   * @description Determine if the model has changed since the last `"change"` event.
-   *              If you specify an attribute name, determine if that attribute has changed.
-   * @param  {string} attr
-   * @return {boolean}
-   */
-  Object.defineProperty(proto, 'hasChanged', {
-    value: function hasChanged (attr) {
+
+    /**
+     * @function BaseModelClass#hasChange
+     * @description Determine if the model has changed since the last `"change"` event.
+     *              If you specify an attribute name, determine if that attribute has changed.
+     * @param  {string} attr
+     * @return {boolean}
+     */
+    hasChanged: function hasChanged (attr) {
       if (attr == null) {
         return !_.isEmpty(this.changed);
       }
       return _.has(this.changed, attr);
-    }
-  });
+    },
 
 
-  /**
-   * @function BaseModelClass#changedAttributes
-   * @description Return an object containing all the attributes that have changed, or
-   *              false if there are no changed attributes. Useful for determining what
-   *              parts of a view need to be updated and/or what attributes need to be
-   *              persisted to the server. Unset attributes will be set to undefined.
-   *              You can also pass an attributes object to diff against the model,
-   *              determining if there *would be* a change.
-   * @param  {object} diff
-   * @return {object}
-   */
-  Object.defineProperty(proto, 'changedAttributes', {
-    value: function changedAttributes (diff) {
+    /**
+     * @function BaseModelClass#changedAttributes
+     * @description Return an object containing all the attributes that have changed, or
+     *              false if there are no changed attributes. Useful for determining what
+     *              parts of a view need to be updated and/or what attributes need to be
+     *              persisted to the server. Unset attributes will be set to undefined.
+     *              You can also pass an attributes object to diff against the model,
+     *              determining if there *would be* a change.
+     * @param  {object} diff
+     * @return {object}
+     */
+    changedAttributes: function changedAttributes (diff) {
       if (!diff) {
         return this.hasChanged() ? _.clone(this.changed) : false;
       }
@@ -1426,49 +1393,43 @@ angular.module('angular.models')
         (changed || (changed = {}))[attr] = val;
       }
       return changed;
-    }
-  });
+    },
 
 
-  /**
-   * @function BaseModelClass#previuos
-   * @description Get the previous value of an attribute, recorded at the time the last
-   *              `"change"` event was fired.
-   * @param  {string} attr
-   * @return {mix}
-   */
-  Object.defineProperty(proto, 'previous', {
-    value: function previous (attr) {
+    /**
+     * @function BaseModelClass#previuos
+     * @description Get the previous value of an attribute, recorded at the time the last
+     *              `"change"` event was fired.
+     * @param  {string} attr
+     * @return {mix}
+     */
+    previous: function previous (attr) {
       if (attr == null || !this._previousAttributes) {
         return null;
       }
       return this._previousAttributes[attr];
-    }
-  });
+    },
 
 
-  /**
-   * @function BaseModelClass#previousAttributes
-   * @description Get all of the attributes of the model at the time of the previous
-   *              <code>change</code> event.
-   * @return {object}
-   */
-  Object.defineProperty(proto, 'previousAttributes', {
-    value: function previousAttributes () {
+    /**
+     * @function BaseModelClass#previousAttributes
+     * @description Get all of the attributes of the model at the time of the previous
+     *              <code>change</code> event.
+     * @return {object}
+     */
+    previousAttributes: function previousAttributes () {
       return _.clone(this._previousAttributes);
-    }
-  });
+    },
 
 
-  /**
-   * @function BaseModelClass#url
-   * @description Default URL for the model's representation on the server -- if you're
-   *              using Backbone's restful methods, override this to change the endpoint
-   *              that will be called.
-   * @return {string}
-   */
-  Object.defineProperty(proto, 'url', {
-    value: function url () {
+    /**
+     * @function BaseModelClass#url
+     * @description Default URL for the model's representation on the server -- if you're
+     *              using Backbone's restful methods, override this to change the endpoint
+     *              that will be called.
+     * @return {string}
+     */
+    url: function url () {
       var base = _.result(this, 'urlRoot') || _.result(this.collection, 'url');
 
       if (base == null) {
@@ -1479,61 +1440,52 @@ angular.module('angular.models')
         return base;
       }
       return base.replace(/([^\/])$/, '$1/') + encodeURIComponent(this.id);
-    }
-  });
+    },
 
 
-  /**
-   * @function BaseModelClass#clone
-   * @description Creates a new model with identical attributes to this one.
-   */
-  Object.defineProperty(proto, 'clone', {
-    value: function clone () {
+    /**
+     * @function BaseModelClass#clone
+     * @description Creates a new model with identical attributes to this one.
+     */
+    clone: function clone () {
       return new this.constructor(this.attributes);
-    }
-  });
+    },
 
-  /**
-   * @function BaseModelClass#isNew
-   * @description A model is new if it has never been saved to the server, and lacks an id.
-   * @return {boolean}
-   */
-  Object.defineProperty(proto, 'isNew', {
-    value: function isNew () {
+
+    /**
+     * @function BaseModelClass#isNew
+     * @description A model is new if it has never been saved to the server, and lacks an id.
+     * @return {boolean}
+     */
+    isNew: function isNew () {
       return !this.has(this.idAttribute);
-    }
-  });
+    },
 
 
-  /**
-   * @function BaseModelClass#isValid
-   * @description Check if the model is currently in a valid state.
-   * @return {boolean}
-   */
-  Object.defineProperty(proto, 'isValid', {
-    value: function isValid (options) {
+    /**
+     * @function BaseModelClass#isValid
+     * @description Check if the model is currently in a valid state.
+     * @return {boolean}
+     */
+    isValid: function isValid (options) {
       return this._validate({}, _.extend(options || {}, { validate: true }));
-    }
-  });
+    },
 
 
-  /**
-   * @function BaseModelClass#parse
-   * @return {object}
-   */
-  Object.defineProperty(proto, 'parse', {
-    value: function parse (response) {
+    /**
+     * @function BaseModelClass#parse
+     * @return {object}
+     */
+    parse: function parse (response) {
       return response;
-    }
-  });
+    },
 
 
-  /**
-   * @function BaseModelClass#save
-   * @return {Promise}
-   */
-  Object.defineProperty(proto, 'save', {
-    value: function save (options) {
+    /**
+     * @function BaseModelClass#save
+     * @return {Promise}
+     */
+    save: function save (options) {
       options = _.extend({validate: true}, options);
       var model = this;
       var operation = model.isNew() ? 'create' : 'update';
@@ -1557,17 +1509,15 @@ angular.module('angular.models')
         WrapError(model, reject, options);
         model.sync(operation, model, options);
       });
-    }
-  });
+    },
 
 
-  /**
-   * @function BaseModelClass#fetch
-   * @description Fetch the document from the server.
-   * @return {Promise}
-   */
-  Object.defineProperty(proto, 'fetch', {
-    value: function fetch (options) {
+    /**
+     * @function BaseModelClass#fetch
+     * @description Fetch the document from the server.
+     * @return {Promise}
+     */
+    fetch: function fetch (options) {
       var model = this;
       options = _.extend({}, options);
 
@@ -1582,17 +1532,15 @@ angular.module('angular.models')
         WrapError(model, reject, options);
         model.sync('read', model, options);
       });
-    }
-  });
+    },
 
 
-  /**
-   * @function BaseModelClass#destroy
-   * @description Destroy this model on the server if it was already persisted.
-   * @return {Promise}
-   */
-  Object.defineProperty(proto, 'destroy', {
-    value: function destroy (options) {
+    /**
+     * @function BaseModelClass#destroy
+     * @description Destroy this model on the server if it was already persisted.
+     * @return {Promise}
+     */
+    destroy: function destroy (options) {
       options = _.extend({}, options);
       var model = this;
 
@@ -1615,49 +1563,44 @@ angular.module('angular.models')
         WrapError(model, reject, options);
         model.sync('delete', model, options);
       });
-    }
-  });
+    },
 
 
-  /**
-   * @function BaseModelClass#remove
-   * @description Removes a model from a collection if it was exist
-   */
-  Object.defineProperty(proto, 'remove', {
-    value: function remove (options) {
+    /**
+     * @function BaseModelClass#remove
+     * @description Removes a model from a collection if it was exist
+     */
+    remove: function remove (options) {
       if (!this.collection) {
         return;
       }
       this.collection.remove(this, options);
-    }
-  });
+    },
 
 
-  /**
-   * @function BaseModelClass#setQueryParam
-   * @param  {String} key    A parameter's name
-   * @param  {Mix} value     A parameter's value
-   * @memberOf BaseModelClass
-   */
-  Object.defineProperty(proto, 'setQueryParam', {
-    value: function (key, value) {
+    /**
+     * @function BaseModelClass#setQueryParam
+     * @param  {String} key    A parameter's name
+     * @param  {Mix} value     A parameter's value
+     * @memberOf BaseModelClass
+     */
+    setQueryParam: function (key, value) {
       if (value != null) {
         this.defaultQueryParams[key] = value;
       }
       else {
         delete this.defaultQueryParams[key];
       }
-    }
-  });
+    },
 
-  /**
-   * @function BaseModelClass#getQueryParams
-   * @description Returns a key-value object which containing a query parameters
-   * @param {Object} params A hash of query parameters. If any matches found then a default set will overridden.
-   * @return {Object}
-   */
-  Object.defineProperty(proto, 'getQueryParams', {
-    value: function getQueryParams (params) {
+
+    /**
+     * @function BaseModelClass#getQueryParams
+     * @description Returns a key-value object which containing a query parameters
+     * @param {Object} params A hash of query parameters. If any matches found then a default set will overridden.
+     * @return {Object}
+     */
+    getQueryParams: function getQueryParams (params) {
       var values = {};
       params = params || {};
       _.each(this.defaultQueryParams, function(value, key) {
@@ -1673,18 +1616,17 @@ angular.module('angular.models')
       }, this);
 
       return _.extend({}, values, params);
-    }
-  });
+    },
 
-  /**
-   * @function BaseModelClass#_validate
-   * @private
-   * @description Run validation against the next complete set of model attributes,
-   *              returning `true` if all is well. Otherwise, fire an `"invalid"` event.
-   * @return {boolean}
-   */
-  Object.defineProperty(proto, '_validate', {
-    value: function _validate (attrs, options) {
+
+    /**
+     * @function BaseModelClass#_validate
+     * @private
+     * @description Run validation against the next complete set of model attributes,
+     *              returning `true` if all is well. Otherwise, fire an `"invalid"` event.
+     * @return {boolean}
+     */
+    _validate: function _validate (attrs, options) {
       if (!options.validate || !this.validate) {
         return true;
       }
@@ -1696,7 +1638,9 @@ angular.module('angular.models')
       this.trigger('invalid', this, error, _.extend(options, {validationError: error}));
       return false;
     }
+
   });
+
 
   /**
    * @event BaseModelClass#change
@@ -1729,10 +1673,10 @@ angular.module('angular.models')
    */
 
    // This will make a BaseModeClass is extendable
-  BaseModelClass.extend = Extend;
+  // BaseModelClass.extend = Extend;
 
   return BaseModelClass;
-}]);
+});
 
 'use strict';
 
@@ -1752,16 +1696,16 @@ angular.module('angular.models.config', [])
 
 angular.module('angular.models')
 
-.factory('BaseExceptionClass', ['Extend', function(Extend) {
+.factory('BaseExceptionClass', function(Extend) {
   function BaseExceptionClass (message) {
     this.name = 'Exception';
     this.message = message;
   }
   BaseExceptionClass.extend = Extend;
   return BaseExceptionClass;
-}])
+})
 
-.factory('ValidationExceptionClass', ['BaseExceptionClass', function (BaseExceptionClass) {
+.factory('ValidationExceptionClass', function (BaseExceptionClass) {
   /**
    * @class ValidationException
    * @description Represents the exception that occurs during validation of a data field
@@ -1769,13 +1713,13 @@ angular.module('angular.models')
    * @param {string} message An error message
    */
   return BaseExceptionClass.extend({});
-}]);
+});
 
 'use strict';
 
 angular.module('angular.models')
 
-.factory('Extend', ['_', function (_) {
+.factory('Extend', function (_) {
   function hasProperty(obj, prop) {
     return Object.prototype.hasOwnProperty.call(obj, prop);
   }
@@ -1896,20 +1840,20 @@ angular.module('angular.models')
   }
 
   return Extend;
-}]);
+});
 
 'use strict';
 
 angular.module('angular.models')
 
-.factory('isModel', ['BaseModelClass', function (BaseModelClass){
+.factory('isModel', function (BaseModelClass){
   'use strict';
   return function isModel(obj) {
     return obj instanceof BaseModelClass;
   };
-}])
+})
 
-.factory('WrapError', ['_', function (_) {
+.factory('WrapError', function (_) {
   'use strict';
   // Wrap an optional error callback with a fallback error event.
   function WrapError (model, reject, options) {
@@ -1927,19 +1871,19 @@ angular.module('angular.models')
   }
 
   return WrapError;
-}]);
+});
 
 'use strict';
 
 angular.module('angular.models')
 
 // Lodash reference
-.factory('_', ['$window', function ($window) {
+.factory('_', function ($window) {
   'use strict';
   var _ = $window._;
 
   return _;
-}]);
+});
 
 'use strict';
 
@@ -1962,7 +1906,7 @@ angular.module('angular.models')
     }
   };
 
-  this.$get = /*@ngInject*/ ['$http', '_', 'Extend', 'BaseEventClass', function($http, _, Extend, BaseEventClass) {
+  this.$get = /*@ngInject*/ function($http, _, Extend, BaseEventClass) {
     /**
      * @class BaseSyncClass
      * @description Override this function to change the manner in which Backbone persists
@@ -2107,6 +2051,6 @@ angular.module('angular.models')
         return data;
       }
     }, {extend: Extend});
-  }];
+  };
 });
 })(window, window.angular);
