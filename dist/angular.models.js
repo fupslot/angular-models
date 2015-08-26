@@ -15,7 +15,7 @@ angular.module('angular.models', []);
 
 angular.module('angular.models')
 
-.factory('BaseClass', ['Extend', function (Extend) {
+.factory('BaseClass', function (Extend) {
   /**
    * @class BaseClass
    * @description A base class constructor
@@ -37,14 +37,15 @@ angular.module('angular.models')
    */
   function BaseClass(){}
   BaseClass.extend = Extend;
+  BaseClass.typeOf = function(obj) {return obj instanceof this;};
   return BaseClass;
-}]);
+});
 
 'use strict';
 
 angular.module('angular.models')
 
-.factory('BaseCollectionClass', ['$q', '$parse', 'Extend', 'BaseSyncClass', 'WrapError', '_', 'isModel', function ($q, $parse, Extend, BaseSyncClass, WrapError, _, isModel) {
+.factory('BaseCollectionClass', function ($q, $parse, Extend, BaseSyncClass, WrapError, _, isModel) {
 
   var proto;
 
@@ -629,13 +630,13 @@ angular.module('angular.models')
   BaseCollectionClass.extend = Extend;
 
   return BaseCollectionClass;
-}]);
+});
 
 'use strict';
 
 angular.module('angular.models')
 
-.factory('BaseModelClass', ['$q', '$parse', 'Extend', 'BaseSyncClass', 'WrapError', 'ValidationExceptionClass', '_', function ($q, $parse, Extend, BaseSyncClass, WrapError, ValidationExceptionClass, _) {
+.factory('BaseModelClass', function ($q, $parse, Extend, BaseSyncClass, WrapError, ValidationExceptionClass, _) {
 
   var proto;
 
@@ -1378,7 +1379,7 @@ angular.module('angular.models')
   BaseModelClass.extend = Extend;
 
   return BaseModelClass;
-}]);
+});
 
 'use strict';
 
@@ -1398,7 +1399,7 @@ angular.module('angular.models.config', [])
 
 angular.module('angular.models')
 
-.service('BaseEventClass', ['Extend', '_', function (Extend, _) {
+.service('BaseEventClass', function (Extend, _) {
 
   /**
    * @class BaseEventClass
@@ -1742,22 +1743,22 @@ angular.module('angular.models')
   BaseEventClass.extend = Extend;
 
   return BaseEventClass;
-}]);
+});
 
 'use strict';
 
 angular.module('angular.models')
 
-.factory('BaseExceptionClass', ['Extend', function(Extend) {
+.factory('BaseExceptionClass', function(Extend) {
   function BaseExceptionClass (message) {
     this.name = 'Exception';
     this.message = message;
   }
   BaseExceptionClass.extend = Extend;
   return BaseExceptionClass;
-}])
+})
 
-.factory('ValidationExceptionClass', ['BaseExceptionClass', function (BaseExceptionClass) {
+.factory('ValidationExceptionClass', function (BaseExceptionClass) {
   /**
    * @class ValidationException
    * @description Represents the exception that occurs during validation of a data field
@@ -1765,13 +1766,13 @@ angular.module('angular.models')
    * @param {string} message An error message
    */
   return BaseExceptionClass.extend({});
-}]);
+});
 
 'use strict';
 
 angular.module('angular.models')
 
-.factory('Extend', ['_', function (_) {
+.factory('Extend', function (_) {
   function hasProperty(obj, prop) {
     return Object.prototype.hasOwnProperty.call(obj, prop);
   }
@@ -1879,6 +1880,9 @@ angular.module('angular.models')
     child.prototype = Object.create(parent.prototype, properties);
 
     child.__super__ = parent.prototype;
+    child.typeOf = function(obj) {
+      return obj instanceof parent;
+    };
 
     if (!_.isEmpty(statics)) {
       _.each(statics, function (value, key) {
@@ -1890,20 +1894,20 @@ angular.module('angular.models')
   }
 
   return Extend;
-}]);
+});
 
 'use strict';
 
 angular.module('angular.models')
 
-.factory('isModel', ['BaseModelClass', function (BaseModelClass){
+.factory('isModel', function (BaseModelClass){
   'use strict';
   return function isModel(obj) {
     return obj instanceof BaseModelClass;
   };
-}])
+})
 
-.factory('WrapError', ['_', function (_) {
+.factory('WrapError', function (_) {
   'use strict';
   // Wrap an optional error callback with a fallback error event.
   function WrapError (model, reject, options) {
@@ -1921,19 +1925,19 @@ angular.module('angular.models')
   }
 
   return WrapError;
-}]);
+});
 
 'use strict';
 
 angular.module('angular.models')
 
 // Lodash reference
-.factory('_', ['$window', function ($window) {
+.factory('_', function ($window) {
   'use strict';
   var _ = $window._;
 
   return _;
-}]);
+});
 
 'use strict';
 
@@ -1956,7 +1960,7 @@ angular.module('angular.models')
     }
   };
 
-  this.$get = /*@ngInject*/ ['$http', '_', 'Extend', 'BaseEventClass', function($http, _, Extend, BaseEventClass) {
+  this.$get = /*@ngInject*/ function($http, _, Extend, BaseEventClass) {
     /**
      * @class BaseSyncClass
      * @description Override this function to change the manner in which Backbone persists
@@ -2101,6 +2105,6 @@ angular.module('angular.models')
         return data;
       }
     }, {extend: Extend});
-  }];
+  };
 });
 })(window, window.angular);

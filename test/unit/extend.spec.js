@@ -1,5 +1,6 @@
-describe('Core: ', function () {
+describe('Extend ', function () {
   'use strict';
+  var Extend, BaseClass;
   var BaseCls, PersonCls, MeCls;
   var BaseConstructorSpy;
   var PersonConstructorSpy;
@@ -15,7 +16,10 @@ describe('Core: ', function () {
   });
 
   // Defining classes
-  beforeEach(inject(function (Extend) {
+  beforeEach(inject(function (_Extend_, _BaseClass_) {
+    Extend = _Extend_;
+    BaseClass = _BaseClass_;
+
     // Base class
     function Base () {
       BaseConstructorSpy();
@@ -67,6 +71,33 @@ describe('Core: ', function () {
 
     MeCls = Me;
   }));
+
+  describe('\'typeOf\'', function(){
+    var CustomClass;
+
+    beforeEach(function(){
+      CustomClass = BaseClass.extend({
+        print: function print() {}
+      });
+    });
+
+    it('Class that inherited from a BaseClass should have \'typeOf\' method', function(){
+      var customClass = new CustomClass();
+      expect(CustomClass.typeOf(customClass)).toBeTruthy();
+    });
+  });
+
+  describe('\'__parent__\'', function() {
+    var CustomClass;
+    beforeEach(function () {
+      CustomClass = BaseClass.extend({});
+    });
+
+    it('reference to a parent should be accesable over a __super__ property', function () {
+      expect(CustomClass.__super__).toBeDefined();
+      expect(BaseClass.typeOf(CustomClass.__super__)).toBeTruthy();
+    });
+  });
 
   describe('Extend', function() {
 

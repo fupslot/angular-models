@@ -24,5 +24,6 @@ angular.module('angular.models')
    */
   function BaseClass(){}
   BaseClass.extend = Extend;
+  BaseClass.typeOf = function(obj) {return obj instanceof this;};
   return BaseClass;
 });
