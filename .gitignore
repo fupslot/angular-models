@@ -5,3 +5,4 @@ vendors
 node_modules
 public
 doc
+test.js
