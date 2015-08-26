@@ -1,17 +1,18 @@
 {
   "name": "angular.models",
-  "version": "0.0.3-Beta.2",
+  "version": "0.0.3-Beta.3",
   "authors": [
     "Eugene Brodsky <eugene.brodsky@autodesk.com>"
   ],
-  "description": "Base classes Model and Collection for Angular",
-  "main": "dist/angular.models.js",
+  "description": "Base classes for Angular",
+  "main": "dist/angular.models.min.js",
   "keywords": [
     "model",
     "collection",
     "angular",
-    "backbone",
-    "class"
+    "class",
+    "pub sub",
+    "events"
   ],
   "license": "GNU",
   "ignore": [
@@ -21,8 +22,7 @@
     "vendors",
     "src",
     "test",
-    "tests",
-    "demo"
+    "tests"
   ],
   "dependencies": {
     "angular": ">=1.3.0",

@@ -32,4 +32,17 @@ describe('BaseClass', function () {
       expect(person.name).toEqual('Eugene');
     });
   });
+
+  describe('\'typeOf\'', function(){
+    var CustomClass;
+
+    beforeEach(function(){
+      CustomClass = BaseClass.extend({});
+    });
+
+    it('should be able to identify if a given class has relation to a BaseClass', function(){
+      var customClass = new CustomClass();
+      expect(BaseClass.typeOf(customClass)).toBeTruthy();
+    });
+  });
 });

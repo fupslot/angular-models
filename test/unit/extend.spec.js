@@ -87,15 +87,15 @@ describe('Extend ', function () {
     });
   });
 
-  describe('\'__parent__\'', function() {
+  describe('\'__super__\'', function() {
     var CustomClass;
     beforeEach(function () {
       CustomClass = BaseClass.extend({});
     });
 
-    it('reference to a parent should be accesable over a __super__ property', function () {
+    it('reference to a super class should be accessable over a __super__ property', function () {
       expect(CustomClass.__super__).toBeDefined();
-      expect(BaseClass.typeOf(CustomClass.__super__)).toBeTruthy();
+      expect(CustomClass.__super__).toEqual(BaseClass.prototype);
     });
   });
 
