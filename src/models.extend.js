@@ -110,9 +110,8 @@ angular.module('angular.models')
     child.prototype = Object.create(parent.prototype, properties);
 
     child.__super__ = parent.prototype;
-    child.typeOf = function(obj) {
-      return obj instanceof parent;
-    };
+    child.typeOf = function(obj) {return obj instanceof parent;};
+    child.extend = Extend;
 
     if (!_.isEmpty(statics)) {
       _.each(statics, function (value, key) {
