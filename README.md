@@ -1,5 +1,6 @@
 #Angular models
 ![Latest build](https://img.shields.io/badge/latest-0.0.3--Beta.2-brightgreen.svg)
+![Latest build](https://travis-ci.org/fupslot/angular-models.svg?branch=master)
 
 Please file issues against that repo.
 
@@ -11,7 +12,7 @@ You can install this package with `bower`.
 bower install angular.models --save
 ```
 
-You must `require` **angular.models** module in your project: 
+You must `require` **angular.models** module in your project:
 
 
 ```js
@@ -59,11 +60,11 @@ angular.module('myApp', ['angular.models'])
 			price: 0.0
 		  }
 	    },
-	    
+
         urlRoot: {
       	    value: '/persons'
         }
-	    
+
 	    name: {
 		    get: function() {
 			    return this.get('name');
@@ -72,7 +73,7 @@ angular.module('myApp', ['angular.models'])
 			    this.set('name',  value);
 		    }
 	    },
-	    
+
 	    price: {
 		    get: function() {
 			    return this.get('price');
