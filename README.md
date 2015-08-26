@@ -1,4 +1,5 @@
 #Angular models
+![Latest build](https://img.shields.io/badge/latest-0.0.3--Beta.2-brightgreen.svg)
 
 Please file issues against that repo.
 
