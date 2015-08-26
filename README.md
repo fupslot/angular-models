@@ -1,5 +1,5 @@
 #Angular models
-![Latest build](https://img.shields.io/badge/latest-v0.0.3--Beta.3-brightgreen.svg)
+![Latest build](https://img.shields.io/badge/latest-v0.0.3--Beta.4-brightgreen.svg)
 ![Latest build](https://travis-ci.org/fupslot/angular-models.svg?branch=master)
 
 Please file issues against that repo.

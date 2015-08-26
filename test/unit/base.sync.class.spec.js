@@ -34,4 +34,6 @@ describe('BaseSyncClass', function () {
     expect(myClass instanceof BaseSyncClass).toBeTruthy();
     expect(myClass.id).toEqual(1);
   });
+
+  xit('should be able to define headers', function(){});
 });

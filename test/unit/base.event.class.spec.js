@@ -1,4 +1,4 @@
-describe('Core: Events', function () {
+describe('BaseEventClass', function () {
   'use strict';
 
   var Events;
@@ -10,6 +10,10 @@ describe('Core: Events', function () {
   beforeEach(inject(function (_BaseEventClass_) {
     Events = _BaseEventClass_;
   }));
+
+  xit('should be inherited from a BaseClass', function(){
+
+  });
 
   describe('should be able', function () {
     var MyObject;

@@ -1,4 +1,4 @@
-describe('Sync class', function () {
+describe('BaseSyncClass', function () {
   'use strict';
   var $httpBackend;
 

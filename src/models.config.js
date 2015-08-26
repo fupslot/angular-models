@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('angular.models.config', [])
-.constant('MODELS_CONFIG',(function modelsConfigBuilder(){
+.constant('MODELS_CONFIG',(function configBuilder(){
   var factory = {
 
   };

@@ -307,4 +307,9 @@ describe('Core: BaseModelClass', function () {
     });
   });
 
+  describe('populating a model', function(){
+    xit('\'parse\' property can be also define as a string', function(){
+
+    });
+  });
 });

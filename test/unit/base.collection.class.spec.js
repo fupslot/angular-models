@@ -1,4 +1,4 @@
-describe('Core: BaseCollectionClass', function () {
+describe('BaseCollectionClass', function () {
   'use strict';
   var $httpBackend;
   var BaseModelClass;
@@ -31,8 +31,13 @@ describe('Core: BaseCollectionClass', function () {
     });
   });
 
-  describe('fetching', function(){
-    it('should be able to fetch a collection froma server', function(){
+
+  xit('should be inherited from BaseSyncClass', function(){
+
+  });
+
+  describe('populating collection', function(){
+    it('should be able to fetch a collection from a server', function(){
       var persons;
       var person;
 
@@ -50,6 +55,11 @@ describe('Core: BaseCollectionClass', function () {
 
       person = persons.first();
       expect(person.get('name')).toEqual('Eugene');
+      expect(BaseModelClass.typeOf(person)).toBeTruthy();
+    });
+
+    xit('\'parse\' property can be also define as a string', function(){
+
     });
   });
 });
