@@ -30,7 +30,7 @@ module.exports = function (grunt) {
         ' * <%= pkg.name %>\n' +
         ' * <%= pkg.description %>\n' +
         ' * @author <%= pkg.author %>\n' +
-        ' * @version v<%= pkg.version %><%= buildtag %>\n' +
+        ' * @version v<%= pkg.version %>\n' +
         ' * @link <%= pkg.homepage %>\n' +
         ' * @license <%= pkg.license %>\n' +
         ' */'
@@ -200,10 +200,26 @@ module.exports = function (grunt) {
           }
         }
       }
+    },
+
+    replace: {
+      readme: {
+        options: {
+          patterns: [{
+            match: /\/latest\-(.+)\-brightgreen\.svg/g,
+            replacement: function(){
+              var options = grunt.file.readJSON('package.json');
+              var version = options.version.replace(/\-/g, '--');
+              return '\/latest-v'+version+'\-brightgreen\.svg';
+            }
+          }]
+        },
+        files: {'./README.md': './README.md'}
+      }
     }
   });
 
-  grunt.registerTask('build', ['clean:dist', 'eslint', 'karma:unit', 'concat:dist', 'ngAnnotate:dist', 'uglify:dist']);
+  grunt.registerTask('build', ['clean:dist', 'eslint', 'karma:unit', 'concat:dist', 'ngAnnotate:dist', 'uglify:dist', 'replace']);
 
   grunt.registerTask('jasmine', function(target){
     if (target === 'build') {
