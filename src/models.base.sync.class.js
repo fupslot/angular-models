@@ -121,8 +121,8 @@ angular.module('angular.models')
           params.cache = this.change;
         }
 
-        params.transformResponse = this.transformResponse;
-        params.transformRequest = this.transformRequest;
+        params.transformResponse = this.$transformResponse;
+        params.transformRequest = this.$transformRequest;
 
         options.success = options.success || angular.noop;
         options.error = options.error || angular.noop;
@@ -137,7 +137,7 @@ angular.module('angular.models')
        * @description If true, a default $http cache will be used to cache the GET request
        * @type {Boolean}
        */
-      cache: false,
+      cache: {value: false, writable: true},
 
       /**
        * @function BaseSyncClass#transformResponse
@@ -150,17 +150,17 @@ angular.module('angular.models')
        * @param  {Object} status  A status that server respond with
        * @return {Object} A transformed response
        */
-      transformResponse: function transformResponse(data) {
+      $transformResponse: function $transformResponse(data) {
         return data;
       },
 
       /**
-       * @function transformResponse
-       * @description
+       * @function BaseSyncClass#$transformResponse
+       * @description Transform response function
        * @param  {Object} data A request data
        * @return {Object}  A transformed request
        */
-      transformRequest: function transformRequest(data){
+      $transformRequest: function $transformRequest(data){
         return data;
       }
     }, {extend: Extend});

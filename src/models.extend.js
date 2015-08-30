@@ -31,13 +31,13 @@ angular.module('angular.models')
     chain = {
       getter: function(){
         getDescriptor().get = function() {
-          return this.get(propName);
+          return this.$get(propName);
         };
         return chain;
       },
       setter: function(){
         getDescriptor().set = function(value) {
-          this.set(propName, value);
+          this.$set(propName, value);
         };
         return chain;
       },
@@ -78,7 +78,7 @@ angular.module('angular.models')
     var parent = this;
     var child;
     var properties = {};
-    var declaration;
+    var $$properties;
 
     if (proto && hasProperty(proto, 'constructor')) {
       child = isDescriptor(proto.constructor) ? proto.constructor.value : proto.constructor;
@@ -89,10 +89,10 @@ angular.module('angular.models')
     //
     properties = {};
     // Properties declared by a user
-    declaration = _.extend({}, proto.$declare);
-    delete proto.$declare;
+    $$properties = _.extend({}, proto.$$properties);
+    delete proto.$$properties;
 
-    _.each(declaration, function (value, key){
+    _.each($$properties, function (value, key){
       if (typeof value === 'string') {
         var getter = value.indexOf('get;') !== -1;
         var setter = value.indexOf('set;') !== -1;

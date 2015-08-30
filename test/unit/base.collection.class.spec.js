@@ -2,16 +2,18 @@ describe('BaseCollectionClass', function () {
   'use strict';
   var $httpBackend;
   var BaseModelClass;
+  var BaseSyncClass;
   var BaseCollectionClass;
   var Person;
   var Persons;
 
   beforeEach(module('angular.models'));
 
-  beforeEach(inject(function(_$httpBackend_, _BaseModelClass_, _BaseCollectionClass_){
+  beforeEach(inject(function(_$httpBackend_, _BaseModelClass_, _BaseCollectionClass_, _BaseSyncClass_){
     $httpBackend = _$httpBackend_;
     BaseModelClass = _BaseModelClass_;
     BaseCollectionClass = _BaseCollectionClass_;
+    BaseSyncClass = _BaseSyncClass_;
   }));
 
   beforeEach(function () {
@@ -32,34 +34,90 @@ describe('BaseCollectionClass', function () {
   });
 
 
-  xit('should be inherited from BaseSyncClass', function(){
-
+  it('should be inherited from BaseSyncClass', function(){
+    var person = new Person();
+    expect(person.typeOf).toBeDefined();
+    expect(BaseSyncClass.typeOf(person)).toBeTruthy();
   });
 
-  describe('populating collection', function(){
-    it('should be able to fetch a collection from a server', function(){
-      var persons;
-      var person;
+  it('should be able to fetch a collection from a server', function(){
+    var persons;
+    var person;
 
-      Persons.url = '/fake';
+    Persons.url = '/fake';
+
+    $httpBackend
+      .expectGET('/persons')
+      .respond([{id: 1, name: 'Eugene'}]);
+
+    persons = new Persons();
+    persons.fetch();
+    $httpBackend.flush();
+
+    expect(persons.length).toBe(1);
+
+    person = persons.first();
+    expect(person.$get('name')).toEqual('Eugene');
+    expect(BaseModelClass.typeOf(person)).toBeTruthy();
+  });
+
+  describe('should be able to parse response with \'parse\' property', function(){
+    var Person;
+    var Persons;
+
+    beforeEach(function(){
+      Person = BaseModelClass.extend({
+        $$properties: {
+          name: 'get;'
+        }
+      });
+    });
+
+    it('set as function', function(){
+      var persons;
+
+      Persons = BaseCollectionClass.extend({
+        model: Person,
+        url: '/persons',
+        parse: function(response) {
+          return response.objects;
+        }
+      });
 
       $httpBackend
         .expectGET('/persons')
-        .respond([{id: 1, name: 'Eugene'}]);
+        .respond({objects: [{id: 1, name: 'Eugene'}]});
 
       persons = new Persons();
       persons.fetch();
       $httpBackend.flush();
 
-      expect(persons.length).toBe(1);
-
-      person = persons.first();
-      expect(person.get('name')).toEqual('Eugene');
-      expect(BaseModelClass.typeOf(person)).toBeTruthy();
+      expect(persons.size()).toEqual(1);
     });
 
-    xit('\'parse\' property can be also define as a string', function(){
+    it('set as a string', function(){
+      var persons;
+      var person;
 
+      Persons = BaseCollectionClass.extend({
+        model: Person,
+        url: '/persons',
+        parse: 'objects'
+      });
+
+      $httpBackend
+        .expectGET('/persons')
+        .respond({objects: [{id: 1, name: 'Eugene'}]});
+
+      persons = new Persons();
+      persons.fetch();
+      $httpBackend.flush();
+
+      expect(persons.size()).toEqual(1);
+      person = persons.first();
+      expect(person.typeOf(BaseModelClass)).toBeTruthy();
+      expect(person.name).toEqual('Eugene');
     });
   });
+
 });

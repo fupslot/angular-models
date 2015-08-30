@@ -74,10 +74,10 @@ angular.module('angular.models')
      *
      *   title: {
      *     get: function () {
-     *       return this.get('title');
+     *       return this.$get('title');
      *     },
      *     set: function(value) {
-     *       this.set('title', value);
+     *       this.$set('title', value);
      *     },
      *     enumerable: true
      *   }
@@ -93,7 +93,7 @@ angular.module('angular.models')
       this.attributes = {};
 
       if (options.parse) {
-        attrs = this.parse(attrs, options) || {};
+        attrs = _.isString(this.parse) ? _.result(attrs, this.parse, {}) : (this.parse(attrs, options) || {});
       }
       if (options.collection) {
         this.collection = options.collection;
@@ -101,7 +101,7 @@ angular.module('angular.models')
 
       attrs = _.defaults({}, attrs, _.result(this, 'defaults'));
 
-      this.set(attrs, options);
+      this.$set(attrs, options);
       this.changed = {};
       this.initialize.apply(this, arguments);
     },
@@ -116,7 +116,7 @@ angular.module('angular.models')
      *   paramSort: {
      *     value: function () {
      *       // this - reference to a current model's instance
-     *       if (this.get('sort') === true) {
+     *       if (this.$get('sort') === true) {
      *         return 'abc';
      *       }
      *       else {
@@ -143,7 +143,7 @@ angular.module('angular.models')
      * var myModel = new MyModel({id: 1});
      * myModel.fetch(); //-> GET /api/models/1?id=1&type=single&sort=desc
      *
-     * myModel.set('sort', true);
+     * myModel.$set('sort', true);
      * myModel.fetch(); //-> GET /api/models/1?id=1&type=single&sort=abc
      */
     defaultQueryParams: {value: {}, writable: true},
@@ -209,11 +209,11 @@ angular.module('angular.models')
 
 
     /**
-     * @function BaseModelClass#get
+     * @function BaseModelClass#$get
      * @description Get the value of an attribute.
      * @param {string} attr A field name
      */
-    get: function get (attr) {
+    $get: function $get (attr) {
       // NOTE: Improve
       // if field name has a dot use $parse othewise return a value from attributes
       var getter = $parse(attr);
@@ -239,12 +239,12 @@ angular.module('angular.models')
      * @return {boolean}
      */
     has: function has (attr) {
-      return this.get(attr) != null;
+      return this.$get(attr) != null;
     },
 
 
     /**
-     * @function BaseModelClass#set
+     * @function BaseModelClass#$set
      * @description Set a hash of attributes (one or many) on the model.
      *              If any of the attributes change the model's state, a "change" event
      *              will be triggered on the model. Change events for specific attributes
@@ -252,7 +252,7 @@ angular.module('angular.models')
      *              for example: change:title, and change:content. You may also pass individual keys and values.
      * @return {BaseModelClass} Return a reference on a current instance of BaseModelClass
      */
-    set: function set (key, val, options) {
+    $set: function $set (key, val, options) {
       var attr, attrs, unset, changes, silent, changing, prev, current;
       if (key == null) {
         return this;
@@ -271,7 +271,7 @@ angular.module('angular.models')
       options.validate = true;
 
       // Run validation.
-      var error = this._validate(attrs, options);
+      var error = this.$validate(attrs, options);
       if (error instanceof ValidationExceptionClass) {
         return false;
       }
@@ -350,7 +350,7 @@ angular.module('angular.models')
      *              if the attribute doesn't exist.
      */
     unset: function unset (attr, options) {
-      return this.set(attr, void 0, _.extend({}, options, {unset: true}));
+      return this.$set(attr, void 0, _.extend({}, options, {unset: true}));
     },
 
 
@@ -363,7 +363,7 @@ angular.module('angular.models')
       for (var key in this.attributes) {
         attrs[key] = void 0;
       }
-      return this.set(attrs, _.extend({}, options, {unset: true}));
+      return this.$set(attrs, _.extend({}, options, {unset: true}));
     },
 
 
@@ -481,7 +481,7 @@ angular.module('angular.models')
      * @return {boolean}
      */
     isValid: function isValid (options) {
-      return this._validate({}, _.extend(options || {}, { validate: true }));
+      return this.$validate({}, _.extend(options || {}, { validate: true }));
     },
 
 
@@ -508,12 +508,12 @@ angular.module('angular.models')
           return reject();
         }
 
-        if (!model._validate({}, options)) {
+        if (!model.$validate({}, options)) {
           return reject(model.validationError);
         }
 
         options.success = function success (response) {
-          if (!model.set(model.parse(response))) {
+          if (!model.$set(model.parse(response))) {
             return reject(response);
           }
           model.trigger('sync', model);
@@ -536,7 +536,7 @@ angular.module('angular.models')
 
       return $q(function (resolve, reject) {
         options.success = function (response) {
-          if (!model.set(model.parse(response))) {
+          if (!model.$set(model.parse(response))) {
             return reject(response);
           }
           model.trigger('fetched', model, response);
@@ -618,7 +618,7 @@ angular.module('angular.models')
       params = params || {};
       _.each(this.defaultQueryParams, function(value, key) {
         if (_.startsWith(value, '@')) {
-          values[key] = this.get(_.trimLeft(value, '@'));
+          values[key] = this.$get(_.trimLeft(value, '@'));
         }
         else if (_.startsWith(value, '=')) {
           values[key] = _.result(this, _.trimLeft(value, '='), null);
@@ -633,13 +633,13 @@ angular.module('angular.models')
 
 
     /**
-     * @function BaseModelClass#_validate
+     * @function BaseModelClass#$validate
      * @private
      * @description Run validation against the next complete set of model attributes,
      *              returning `true` if all is well. Otherwise, fire an `"invalid"` event.
      * @return {boolean}
      */
-    _validate: function _validate (attrs, options) {
+    $validate: function $validate (attrs, options) {
       if (!options.validate || !this.validate) {
         return true;
       }

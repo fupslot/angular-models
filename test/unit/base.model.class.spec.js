@@ -1,4 +1,4 @@
-describe('Core: BaseModelClass', function () {
+describe('BaseModelClass', function () {
   'use strict';
 
   var $httpBackend;
@@ -61,10 +61,10 @@ describe('Core: BaseModelClass', function () {
 
         title: {
           get: function () {
-            return this.get('title');
+            return this.$get('title');
           },
           set: function(value) {
-            this.set('title', value);
+            this.$set('title', value);
           },
           enumerable: true
         }
@@ -73,12 +73,12 @@ describe('Core: BaseModelClass', function () {
 
     it('default definition', function () {
       book = new BookCls();
-      expect(book.get('title')).toEqual('Untitled book');
+      expect(book.$get('title')).toEqual('Untitled book');
     });
 
     it('custom definition', function () {
       book = new BookCls({title: 'Sherlock Holmes'});
-      expect(book.get('title')).toEqual('Sherlock Holmes');
+      expect(book.$get('title')).toEqual('Sherlock Holmes');
     });
 
     it('use custom accessors', function () {
@@ -118,8 +118,8 @@ describe('Core: BaseModelClass', function () {
       $httpBackend.flush();
 
       expect(responseSpy).toHaveBeenCalled();
-      expect(person.get('id')).toEqual(1);
-      expect(person.get('name')).toEqual('Eugene');
+      expect(person.$get('id')).toEqual(1);
+      expect(person.$get('name')).toEqual('Eugene');
     });
 
     it('should be able to save a model', function () {
@@ -127,13 +127,13 @@ describe('Core: BaseModelClass', function () {
         .respond({id: 1, name: 'Eugene Brodsky'});
 
       var person = new Person({id: 1, name: 'Eugene'});
-      expect(person.get('name')).toEqual('Eugene');
-      person.set('name', 'Eugene Brodsky');
+      expect(person.$get('name')).toEqual('Eugene');
+      person.$set('name', 'Eugene Brodsky');
       person.save();
 
       $httpBackend.flush();
       expect(responseSpy).toHaveBeenCalled();
-      expect(person.get('name')).toEqual('Eugene Brodsky');
+      expect(person.$get('name')).toEqual('Eugene Brodsky');
     });
 
     describe('query params', function() {
@@ -149,11 +149,11 @@ describe('Core: BaseModelClass', function () {
           $httpBackend.expectGET('/persons/1?id=1')
             .respond({id: 1, name: 'Eugene'});
 
-          person.set('id', 1);
+          person.$set('id', 1);
           person.fetch({params: {id: 1}});
           $httpBackend.flush();
 
-          expect(person.get('name')).toEqual('Eugene');
+          expect(person.$get('name')).toEqual('Eugene');
         });
 
         it('over the save function', function(){
@@ -162,7 +162,7 @@ describe('Core: BaseModelClass', function () {
 
           person.save({params: {a: 'a', b: 'b'}});
           $httpBackend.flush();
-          expect(person.get('name')).toEqual('Eugene');
+          expect(person.$get('name')).toEqual('Eugene');
         });
 
         it('over the destroy function', function(){
@@ -170,11 +170,11 @@ describe('Core: BaseModelClass', function () {
             .respond(204, '');
 
           // Pretends that an instance of a Person class has some data
-          person.set('id', 1);
+          person.$set('id', 1);
 
           person.destroy({params: {a: 'a', b: 'b'}});
           $httpBackend.flush();
-          expect(person.get('name')).toBeUndefined();
+          expect(person.$get('name')).toBeUndefined();
         });
       });
 
@@ -197,7 +197,7 @@ describe('Core: BaseModelClass', function () {
             },
             paramSort: {
               value: function() {
-                if (this.get('sort') === true) {
+                if (this.$get('sort') === true) {
                   return 'abc';
                 }
                 else {
@@ -217,7 +217,7 @@ describe('Core: BaseModelClass', function () {
           expect(params.id).toEqual(1);
           expect(params.type).toEqual('single');
           expect(params.sort).toEqual('desc');
-          myModel.set('sort', true);
+          myModel.$set('sort', true);
           params = myModel.getQueryParams();
           expect(params.sort).toEqual('abc');
         });
@@ -237,7 +237,7 @@ describe('Core: BaseModelClass', function () {
           params = myModel.getQueryParams();
           expect(params.name).toBeUndefined();
           // Sets a static query parameter
-          myModel.set('name', 'Eugene');
+          myModel.$set('name', 'Eugene');
           params = myModel.getQueryParams();
           expect(params.name).toEqual('Eugene');
           // Sets a dynamic query parameter
@@ -258,7 +258,7 @@ describe('Core: BaseModelClass', function () {
             .respond({id: 1, name: 'Eugene'});
           myModel.fetch();
           $httpBackend.flush();
-          expect(myModel.get('name')).toEqual('Eugene');
+          expect(myModel.$get('name')).toEqual('Eugene');
         });
 
         it('fetch a model data with overridden pre-defined query parameters', function(){
@@ -266,7 +266,7 @@ describe('Core: BaseModelClass', function () {
             .respond({id: 1, name: 'Eugene'});
           myModel.fetch({params: {id: 2}});
           $httpBackend.flush();
-          expect(myModel.get('name')).toEqual('Eugene');
+          expect(myModel.$get('name')).toEqual('Eugene');
         });
       });
     });
@@ -277,7 +277,7 @@ describe('Core: BaseModelClass', function () {
 
     beforeEach(function(){
       MyClass = BaseModelClass.extend({
-        $declare: {
+        $$properties: {
           title: 'get; set;',
           name: 'get;'
         },
@@ -307,9 +307,7 @@ describe('Core: BaseModelClass', function () {
     });
   });
 
-  describe('populating a model', function(){
-    xit('\'parse\' property can be also define as a string', function(){
+  xit('\'parse\' property can be also define as a string', function(){
 
-    });
   });
 });

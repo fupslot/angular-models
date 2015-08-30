@@ -2,7 +2,7 @@
 
 angular.module('angular.models')
 
-.factory('BaseCollectionClass', function ($q, $parse, BaseSyncClass, BaseModelClass, WrapError, _) {
+.factory('BaseCollectionClass', function ($q, BaseSyncClass, BaseModelClass, WrapError, _) {
 
   var BaseCollectionClass;
 
@@ -30,7 +30,7 @@ angular.module('angular.models')
       if (options.comparator !== void 0) {
         this.comparator = options.comparator;
       }
-      this._reset();
+      this.$reset();
       this.initialize.apply(this, arguments);
       if (models) {
         this.reset(models, _.extend({silent: true}, options));
@@ -72,7 +72,7 @@ angular.module('angular.models')
      * @return {BaseModelClass}
      */
     add: function (models, options) {
-      return this.set(models, _.extend({merge: false}, options, addOptions));
+      return this.$set(models, _.extend({merge: false}, options, addOptions));
     },
 
 
@@ -81,7 +81,7 @@ angular.module('angular.models')
      * @description Remove a model, or a list of models from the set.
      * @return {BaseModelClass}
      */
-    remove: function (models, options) {
+    remove: function remove(models, options) {
       var singular = !_.isArray(models);
       models = singular ? [models] : _.clone(models); // ? method 'clone' doesn't make deep clone copy
       options = options || {};
@@ -102,23 +102,24 @@ angular.module('angular.models')
           options.index = index;
           model.trigger('remove', model, this, options);
         }
-        this._removeReference(model, options);
+        this.$removeReference(model, options);
       }
       return singular ? models[0] : models;
     },
 
     /**
-     * @function BaseCollectionClass#set
+     * @function BaseCollectionClass#$set
      * @description Update a collection by `set`-ing a new list of models, adding new ones,
      *              removing models that are no longer present, and merging models that
      *              already exist in the collection, as necessary. Similar to **Model#set**,
      *              the core operation for updating the data contained by the collection.
      * @return {BaseModelClass}
      */
-    set: function (models, options) {
+    $set: function $set(models, options) {
       options = _.defaults({}, options, setOptions);
       if (options.parse) {
-        models = this.parse(models, options);
+        // models = this.parse(models, options);
+        models = _.isString(this.parse) ? _.result(models, this.parse) :  this.parse(models, options);
       }
       var singular = !_.isArray(models);
       models = singular ? (models ? [models] : []) : models.slice(); //slice.apply(models);
@@ -161,12 +162,12 @@ angular.module('angular.models')
 
         // If this is a new, valid model, push it to the `toAdd` list.
         } else if (add) {
-          model = models[i] = this._prepareModel(attrs, options);
+          model = models[i] = this.$prepareModel(attrs, options);
           if (!model) {
             continue;
           }
           toAdd.push(model);
-          this._addReference(model, options);
+          this.$addReference(model, options);
         }
 
         // Do not add multiple models with the same `id`.
@@ -250,13 +251,13 @@ angular.module('angular.models')
      *              Useful for bulk operations and optimizations.
      * @return {BaseModelClass}
      */
-    reset: function (models, options) {
+    reset: function reset(models, options) {
       options = options ? _.clone(options) : {};
       for (var i = 0, length = this.models.length; i < length; i++) {
-        this._removeReference(this.models[i], options);
+        this.$removeReference(this.models[i], options);
       }
       options.previousModels = this.models;
-      this._reset();
+      this.$reset();
       models = this.add(models, _.extend({silent: true}, options));
       if (!options.silent) {
         this.trigger('reset', this, options);
@@ -379,7 +380,7 @@ angular.module('angular.models')
         options = _.extend({}, options, {parse: true});
 
         options.success = function success (response) {
-          self.set(response, options);
+          self.$set(response, options);
           self.trigger('fetched', self);
           resolve(self);
         };
@@ -399,7 +400,7 @@ angular.module('angular.models')
       var self = this;
       options = options ? _.clone(options) : {};
       return $q(function (resolve, reject) {
-        if (!(model = self._prepareModel(model, options))) {
+        if (!(model = self.$prepareModel(model, options))) {
           return reject();
         }
         model.save(options)
@@ -423,12 +424,12 @@ angular.module('angular.models')
 
 
     /**
-     * @function BaseCollectionClass~_reset
+     * @function BaseCollectionClass~$reset
      * @private
      * @description Private method to reset all internal state. Called when the collection
      *              is first initialized or reset.
      */
-    _reset: function () {
+    $reset: function () {
       this.length = 0;
       this.models = [];
       this._byId  = {};
@@ -436,13 +437,13 @@ angular.module('angular.models')
 
 
     /**
-     * @function BaseCollectionClass~_prepareModel
+     * @function BaseCollectionClass~$prepareModel
      * @private
      * @description Prepare a hash of attributes (or other model) to be added to this
      *              collection.
      * @return {BaseModelClass}
      */
-    _prepareModel: function (attrs, options) {
+    $prepareModel: function (attrs, options) {
       if (BaseModelClass.typeOf(attrs)) {
         if (!attrs.collection) {
           attrs.collection = this;
@@ -461,44 +462,44 @@ angular.module('angular.models')
 
 
     /**
-     * @function BaseCollectionClass~_addReference
+     * @function BaseCollectionClass~$addReference
      * @private
      * @description Internal method to create a model's ties to a collection.
      */
-    _addReference: function (model) {
+    $addReference: function (model) {
       this._byId[model.cid] = model;
       var id = this.modelId(model.attributes);
       if (id != null) {
         this._byId[id] = model;
       }
-      model.on('all', this._onModelEvent, this);
+      model.on('all', this.$onModelEvent, this);
     },
 
 
 
     /**
-     * @function BaseCollectionClass~_removeReference
+     * @function BaseCollectionClass~$removeReference
      * @private
      * @description Internal method to sever a model's ties to a collection.
      * @return {type}
      */
-    _removeReference: function (model) {
+    $removeReference: function (model) {
       if (this === model.collection) {
         delete model.collection;
       }
-      model.off('all', this._onModelEvent, this);
+      model.off('all', this.$onModelEvent, this);
     },
 
 
     /**
-     * @function BaseCollectionClass~_onModelEvent
+     * @function BaseCollectionClass~$onModelEvent
      * @private
      * @description Internal method called every time a model in the set fires an event.
      *              Sets need to update their indexes when models change ids. All other
      *              events simply proxy through. "add" and "remove" events that originate
      *              in other collections are ignored.
      */
-    _onModelEvent: function (event, model, collection, options) {
+    $onModelEvent: function (event, model, collection, options) {
       if ((event === 'add' || event === 'remove') && collection !== this) {
         return;
       }

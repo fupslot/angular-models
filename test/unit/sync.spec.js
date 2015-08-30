@@ -33,8 +33,8 @@ describe('BaseSyncClass', function () {
       myClass.fetch();
       $httpBackend.flush();
 
-      expect(myClass.get('id')).toEqual(1);
-      expect(myClass.get('name')).toEqual('Eugene');
+      expect(myClass.$get('id')).toEqual(1);
+      expect(myClass.$get('name')).toEqual('Eugene');
     });
   });
 
@@ -70,8 +70,8 @@ describe('BaseSyncClass', function () {
       myClass.fetch();
       $httpBackend.flush();
 
-      expect(myClass.get('id')).toEqual(1);
-      expect(myClass.get('name')).toEqual('Eugene');
+      expect(myClass.$get('id')).toEqual(1);
+      expect(myClass.$get('name')).toEqual('Eugene');
     });
   });
 
