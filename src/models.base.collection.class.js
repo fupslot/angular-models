@@ -153,7 +153,7 @@ angular.module('angular.models')
             if (options.parse) {
               attrs = existing.parse(attrs, options);
             }
-            existing.set(attrs, options);
+            existing.$set(attrs, options);
             if (sortable && !sort && existing.hasChanged(sortAttr)) {
               sort = true;
             }

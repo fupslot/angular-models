@@ -2,7 +2,7 @@
  * angular.models
  * Provides base classes and modules to make applications rapidly
  * @author Eugene Brodsky
- * @version v0.0.3-Beta.5
+ * @version v0.0.3-Beta.6
  * @link https://github.com/fupslot/angular-models
  * @license MIT License
  */
@@ -199,7 +199,7 @@ angular.module('angular.models')
             if (options.parse) {
               attrs = existing.parse(attrs, options);
             }
-            existing.set(attrs, options);
+            existing.$set(attrs, options);
             if (sortable && !sort && existing.hasChanged(sortAttr)) {
               sort = true;
             }
