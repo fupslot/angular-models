@@ -2005,10 +2005,8 @@ angular.module('angular.models')
 angular.module('angular.models')
 
 // Lodash reference
-.factory('_', ['$window', function ($window) {
+.factory('_', function () {
   'use strict';
-  var _ = $window._;
-
-  return _;
-}]);
+  return window._;
+});
 })(window, window.angular);
