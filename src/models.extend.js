@@ -81,22 +81,21 @@ angular.module('angular.models')
     var $$properties;
 
     if (proto && hasProperty(proto, 'constructor')) {
-      child = isDescriptor(proto.constructor) ? proto.constructor.value : proto.constructor;
+      child = typeof proto.constructor === 'object' ? proto.constructor.value : proto.constructor;
     } else {
       child = function() { return parent.apply(this, arguments); };
+      proto.constructor = child;
     }
 
-    //
-    properties = {};
     // Properties declared by a user
     $$properties = _.extend({}, proto.$$properties);
     delete proto.$$properties;
 
-    _.each($$properties, function (value, key){
+    _.each($$properties, function (value, property){
       if (typeof value === 'string') {
         var getter = value.indexOf('get;') !== -1;
         var setter = value.indexOf('set;') !== -1;
-        var descriptor = declare(properties, key);
+        var descriptor = declare(properties, property);
 
         getter && descriptor.getter();
         setter && descriptor.setter();

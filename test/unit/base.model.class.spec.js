@@ -138,44 +138,39 @@ describe('BaseModelClass', function () {
 
     describe('query params', function() {
 
-      describe('should be able to set it', function(){
-        var person;
+      it('over the fetch function', function () {
+        var person = new Person();
+        $httpBackend.expectGET('/persons/1?id=1')
+          .respond({id: 1, name: 'Eugene'});
 
-        beforeEach(function(){
-          person = new Person();
-        });
+        person.$set('id', 1);
+        person.fetch({params: {id: 1}});
+        $httpBackend.flush();
 
-        it('over the fetch function', function () {
-          $httpBackend.expectGET('/persons/1?id=1')
-            .respond({id: 1, name: 'Eugene'});
+        expect(person.$get('name')).toEqual('Eugene');
+      });
 
-          person.$set('id', 1);
-          person.fetch({params: {id: 1}});
-          $httpBackend.flush();
+      it('over the save function', function(){
+        var person = new Person();
+        $httpBackend.expectPOST('/persons?a=a&b=b')
+          .respond({id: 1, name: 'Eugene'});
 
-          expect(person.$get('name')).toEqual('Eugene');
-        });
+        person.save({params: {a: 'a', b: 'b'}});
+        $httpBackend.flush();
+        expect(person.$get('name')).toEqual('Eugene');
+      });
 
-        it('over the save function', function(){
-          $httpBackend.expectPOST('/persons?a=a&b=b')
-            .respond({id: 1, name: 'Eugene'});
+      it('over the destroy function', function(){
+        var person = new Person();
+        $httpBackend.expectDELETE('/persons/1?a=a&b=b')
+          .respond(204, '');
 
-          person.save({params: {a: 'a', b: 'b'}});
-          $httpBackend.flush();
-          expect(person.$get('name')).toEqual('Eugene');
-        });
+        // Pretends that an instance of a Person class has some data
+        person.$set('id', 1);
 
-        it('over the destroy function', function(){
-          $httpBackend.expectDELETE('/persons/1?a=a&b=b')
-            .respond(204, '');
-
-          // Pretends that an instance of a Person class has some data
-          person.$set('id', 1);
-
-          person.destroy({params: {a: 'a', b: 'b'}});
-          $httpBackend.flush();
-          expect(person.$get('name')).toBeUndefined();
-        });
+        person.destroy({params: {a: 'a', b: 'b'}});
+        $httpBackend.flush();
+        expect(person.$get('name')).toBeUndefined();
       });
 
       describe('should be able to', function(){
@@ -272,42 +267,33 @@ describe('BaseModelClass', function () {
     });
   });
 
-  describe('auto declaration for getters and setters', function(){
-    var MyClass;
-
-    beforeEach(function(){
-      MyClass = BaseModelClass.extend({
-        $$properties: {
-          title: 'get; set;',
-          name: 'get;'
-        },
-
-        defaults: {
-          name: 'Eugene'
-        }
-      });
-    });
-
-    it('should have a getter and setter for title property', function(){
-      var model = new MyClass();
-      expect(model.title).toBeUndefined();
-      model.title = 'title';
-      expect(model.title).toEqual('title');
-    });
-
-    it('should have a getter only for a name property', function(){
-      var model = new MyClass();
-      expect(model.name).toEqual('Eugene');
-      try {
-        model.name = 'Oshri';
-      }
-      catch(e) {
-        expect(model.name).toEqual('Eugene');
+  it('declare getters and setters', function(){
+    var Model = BaseModelClass.extend({
+      $$properties: {
+        title: 'get; set;',
+        name: 'get;'
       }
     });
+    var model = new Model({name: 'Eugene', title: ''});
+    model.title = 'Developer';
+    expect(model.title).toEqual('Developer');
+    try { model.name = 'Oshri'; }
+    catch(e) { expect(model.name).toEqual('Eugene'); }
   });
 
-  xit('\'parse\' property can be also define as a string', function(){
+  it('\'parse\' as function', function(){
+    var Model = BaseModelClass.extend({ parse: function (data) { return data.data; } });
+    var attrs = {data: {id: 1, name: 'Eugene'}};
+    var model = new Model(attrs, {parse: true});
+    expect(model.id).toEqual(1);
+    expect(model.$get('name')).toEqual('Eugene');
+  });
 
+  it('\'parse\' as string', function() {
+    var Model = BaseModelClass.extend({ parse: 'data' });
+    var attrs = {data: {id: 1, name: 'Eugene'}};
+    var model = new Model(attrs, {parse: true});
+    expect(model.id).toEqual(1);
+    expect(model.$get('name')).toEqual('Eugene');
   });
 });

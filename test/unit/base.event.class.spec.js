@@ -84,17 +84,11 @@ describe('BaseEventClass', function () {
 
     solder.on('fire', fireSpy);
     solder.on('walk', walkSpy);
-    spyOn(solder, 'fire').and.callThrough();
-    spyOn(solder, 'walk').and.callThrough();
-    spyOn(solder, 'order').and.callThrough();
 
     solder.listenTo(base, 'cmd', solder.order);
+
     base.command('walk');
     base.command('fire');
-
-    expect(solder.fire).toHaveBeenCalled();
-    expect(solder.walk).toHaveBeenCalled();
-    expect(solder.order).toHaveBeenCalled();
 
     expect(fireSpy).toHaveBeenCalledWith(solder);
     expect(walkSpy).toHaveBeenCalledWith(solder);

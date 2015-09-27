@@ -412,6 +412,18 @@ angular.module('angular.models')
       });
     },
 
+    /**
+     * @function BaseCollectionClass#clone
+     * @description Create a new collection with an identical list of models as this one.
+     * @return {BaseCollectionClass}
+     */
+    clone: function() {
+      return new this.constructor(this.models, {
+        model: this.model,
+        comparator: this.comparator
+      });
+    },
+
 
     /**
      * @function BaseCollectionClass#modelId

@@ -92,8 +92,12 @@ angular.module('angular.models')
         // Default JSON-request options.
         var params = _.pick(options, ['method', 'cache', 'timeout', 'params', 'withCredentials', 'xsrfHeaderName', 'xsrfCookieName']);
 
-        params.headers = {};
-        params.headers['accept'] = 'application/json, text/plain, */*';
+        params.headers = options.headers || {};
+
+        // Set 'Accept' header by default
+        if (!params.headers['accept']) {
+          params.headers['accept'] = 'application/json, text/plain, */*';
+        }
 
         params.url = options.url || _.result(model, 'url');
         // Ensure that we have a URL.

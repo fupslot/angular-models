@@ -2,7 +2,7 @@
  * angular.models
  * Provides base classes and modules to make applications rapidly
  * @author Eugene Brodsky
- * @version v0.0.3-Beta.7
+ * @version v0.0.3
  * @link https://github.com/fupslot/angular-models
  * @license MIT License
  */
@@ -455,6 +455,18 @@ angular.module('angular.models')
             model.trigger('created', model, self,  options);
             resolve(model);
           }, reject);
+      });
+    },
+
+    /**
+     * @function BaseCollectionClass#clone
+     * @description Create a new collection with an identical list of models as this one.
+     * @return {BaseCollectionClass}
+     */
+    clone: function() {
+      return new this.constructor(this.models, {
+        model: this.model,
+        comparator: this.comparator
       });
     },
 
@@ -1730,8 +1742,12 @@ angular.module('angular.models')
         // Default JSON-request options.
         var params = _.pick(options, ['method', 'cache', 'timeout', 'params', 'withCredentials', 'xsrfHeaderName', 'xsrfCookieName']);
 
-        params.headers = {};
-        params.headers['accept'] = 'application/json, text/plain, */*';
+        params.headers = options.headers || {};
+
+        // Set 'Accept' header by default
+        if (!params.headers['accept']) {
+          params.headers['accept'] = 'application/json, text/plain, */*';
+        }
 
         params.url = options.url || _.result(model, 'url');
         // Ensure that we have a URL.
@@ -1925,22 +1941,21 @@ angular.module('angular.models')
     var $$properties;
 
     if (proto && hasProperty(proto, 'constructor')) {
-      child = isDescriptor(proto.constructor) ? proto.constructor.value : proto.constructor;
+      child = typeof proto.constructor === 'object' ? proto.constructor.value : proto.constructor;
     } else {
       child = function() { return parent.apply(this, arguments); };
+      proto.constructor = child;
     }
 
-    //
-    properties = {};
     // Properties declared by a user
     $$properties = _.extend({}, proto.$$properties);
     delete proto.$$properties;
 
-    _.each($$properties, function (value, key){
+    _.each($$properties, function (value, property){
       if (typeof value === 'string') {
         var getter = value.indexOf('get;') !== -1;
         var setter = value.indexOf('set;') !== -1;
-        var descriptor = declare(properties, key);
+        var descriptor = declare(properties, property);
 
         getter && descriptor.getter();
         setter && descriptor.setter();

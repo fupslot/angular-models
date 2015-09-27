@@ -1,11 +1,13 @@
 describe('BaseSyncClass', function () {
   var MyClass;
+  var BaseModelClass;
   var BaseSyncClass;
   var $httpBackend;
 
   beforeEach(module('angular.models'));
 
-  beforeEach(inject(function(_BaseSyncClass_, _$httpBackend_){
+  beforeEach(inject(function(_BaseSyncClass_, _BaseModelClass_, _$httpBackend_){
+    BaseModelClass = _BaseModelClass_;
     BaseSyncClass = _BaseSyncClass_;
     $httpBackend = _$httpBackend_;
 
@@ -35,5 +37,33 @@ describe('BaseSyncClass', function () {
     expect(myClass.id).toEqual(1);
   });
 
-  xit('should be able to define headers', function(){});
+  it('can define headers', function(){
+    var Model = BaseModelClass.extend({});
+    var model = new Model({id: 1});
+    var headers;
+
+    function successFn(d, s, h, config) { headers = config.headers; }
+    $httpBackend.expectGET('/models').respond(200, {id: 1, name: 'iPhone'});
+    model.sync('read', model, {url: '/models', headers: {'accept': 'application/json'}}).success(successFn);
+    $httpBackend.flush();
+    expect(headers).toBeDefined();
+    expect(headers['accept']).toEqual('application/json');
+  });
+
+  it('transform response and response', function () {
+    function transformRequest(data) {
+      return {data: data};
+    }
+    function transformResponse(data) {
+      return data.data;
+    }
+    var Model = BaseModelClass.extend({url: '/models/1', $transformResponse: transformResponse, $transformRequest: transformRequest});
+    var model = new Model({id: 1});
+
+    $httpBackend.expectGET('/models/1').respond(200, {data: {id: 1, name: 'iPhone'}});
+    model.fetch();
+    $httpBackend.flush();
+
+    expect(model.$get('name')).toEqual('iPhone');
+  });
 });

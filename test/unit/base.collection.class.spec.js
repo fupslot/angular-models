@@ -61,63 +61,55 @@ describe('BaseCollectionClass', function () {
     expect(BaseModelClass.typeOf(person)).toBeTruthy();
   });
 
-  describe('should be able to parse response with \'parse\' property', function(){
-    var Person;
-    var Persons;
 
-    beforeEach(function(){
-      Person = BaseModelClass.extend({
-        $$properties: {
-          name: 'get;'
-        }
-      });
+  it('\'parse\' as a function', function(){
+    var Person = BaseModelClass.extend({});
+    var Persons = BaseCollectionClass.extend({
+      model: Person,
+      url: '/persons',
+      parse: function(response) {
+        return response.objects;
+      }
     });
 
-    it('set as function', function(){
-      var persons;
+    $httpBackend
+      .expectGET('/persons')
+      .respond({objects: [{id: 1, name: 'Eugene'}]});
 
-      Persons = BaseCollectionClass.extend({
-        model: Person,
-        url: '/persons',
-        parse: function(response) {
-          return response.objects;
-        }
-      });
+    var persons = new Persons();
+    persons.fetch();
+    $httpBackend.flush();
 
-      $httpBackend
-        .expectGET('/persons')
-        .respond({objects: [{id: 1, name: 'Eugene'}]});
-
-      persons = new Persons();
-      persons.fetch();
-      $httpBackend.flush();
-
-      expect(persons.size()).toEqual(1);
-    });
-
-    it('set as a string', function(){
-      var persons;
-      var person;
-
-      Persons = BaseCollectionClass.extend({
-        model: Person,
-        url: '/persons',
-        parse: 'objects'
-      });
-
-      $httpBackend
-        .expectGET('/persons')
-        .respond({objects: [{id: 1, name: 'Eugene'}]});
-
-      persons = new Persons();
-      persons.fetch();
-      $httpBackend.flush();
-
-      expect(persons.size()).toEqual(1);
-      person = persons.first();
-      expect(person.typeOf(BaseModelClass)).toBeTruthy();
-      expect(person.name).toEqual('Eugene');
-    });
+    expect(persons.size()).toEqual(1);
   });
 
+  it('\'parse\' as a string', function(){
+    var Person = BaseModelClass.extend({});
+    var Persons = BaseCollectionClass.extend({
+      model: Person,
+      url: '/persons',
+      parse: 'objects'
+    });
+
+    $httpBackend
+      .expectGET('/persons')
+      .respond({objects: [{id: 1, name: 'Eugene'}]});
+
+    var persons = new Persons();
+    persons.fetch();
+    $httpBackend.flush();
+
+    expect(persons.size()).toEqual(1);
+  });
+
+  it('clone collection', function () {
+    var Model = BaseModelClass.extend({});
+    var Collection = BaseCollectionClass.extend({
+      customFn: function customFn() { return true; }
+    });
+
+    var collection = new Collection([{id: 1}], {model: Model});
+    var clone = collection.clone();
+    expect(clone.customFn()).toBeTruthy();
+  });
 });
