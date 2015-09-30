@@ -63,7 +63,7 @@ angular.module('angular.models')
     delete proto.$$properties;
 
     _.each($$properties, function (propValue, propName){
-      if (typeof value === 'string') {
+      if (typeof propValue === 'string') {
         var getter = propValue.indexOf('get;') !== -1;
         var setter = propValue.indexOf('set;') !== -1;
 

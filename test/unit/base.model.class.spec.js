@@ -272,13 +272,21 @@ describe('BaseModelClass', function () {
       $$properties: {
         title: 'get; set;',
         name: 'get;'
+      },
+      displayName: {
+        get: function displayName() {
+          return this.name;
+        }
       }
     });
     var model = new Model({name: 'Eugene', title: ''});
+    expect(model.title).toBeDefined();
+    expect(model.name).toBeDefined();
     model.title = 'Developer';
     expect(model.title).toEqual('Developer');
     try { model.name = 'Oshri'; }
     catch(e) { expect(model.name).toEqual('Eugene'); }
+    expect(model.displayName).toEqual('Eugene');
   });
 
   it('\'parse\' as function', function(){
