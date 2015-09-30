@@ -11,45 +11,16 @@ angular.module('angular.models')
     return _.isObject(obj) && (hasProperty(obj, 'value') || hasProperty(obj, 'get') || hasProperty(obj, 'set'));
   }
 
-  function declare(proto, propName) {
-    var chain;
-    var descriptor;
-
-    function getDescriptor() {
-      if (!descriptor) {
-        descriptor = proto[propName] = {};
-      }
-      return descriptor;
-    }
-
-    function defineDescriptorPropertySetter(propName) {
-      return function(value) {
-        getDescriptor()[propName] = (value == null) ? true : value;
-      };
-    }
-    // NOTE: Find an elegant solution to create a descriptor on demand
-    chain = {
-      getter: function(){
-        getDescriptor().get = function() {
-          return this.$get(propName);
-        };
-        return chain;
-      },
-      setter: function(){
-        getDescriptor().set = function(value) {
-          this.$set(propName, value);
-        };
-        return chain;
-      },
-      value: function(value) {
-        getDescriptor().value = value;
-        return chain;
-      },
-      writable: defineDescriptorPropertySetter('writable'),
-      enumerable: defineDescriptorPropertySetter('enumerable'),
-      configurable: defineDescriptorPropertySetter('configurable')
+  function defineGetter (obj, key) {
+    obj.get = function () {
+      return this.$get(key);
     };
-    return chain;
+  }
+
+  function defineSetter(obj, key) {
+    obj.set = function (value) {
+      this.$set(key, value);
+    };
   }
 
   /**
@@ -91,19 +62,29 @@ angular.module('angular.models')
     $$properties = _.extend({}, proto.$$properties);
     delete proto.$$properties;
 
-    _.each($$properties, function (value, property){
+    _.each($$properties, function (propValue, propName){
       if (typeof value === 'string') {
-        var getter = value.indexOf('get;') !== -1;
-        var setter = value.indexOf('set;') !== -1;
-        var descriptor = declare(properties, property);
+        var getter = propValue.indexOf('get;') !== -1;
+        var setter = propValue.indexOf('set;') !== -1;
 
-        getter && descriptor.getter();
-        setter && descriptor.setter();
+        properties[propName] = {};
+        getter && defineGetter(properties[propName], propName);
+        setter && defineSetter(properties[propName], propName);
       }
     });
 
-    _.each(proto, function(value, key) {
-      properties[key] = isDescriptor(value) ? value : {value: value};
+    _.each(proto, function(propValue, propName) {
+      var descriptor = propValue;
+
+      if (!isDescriptor(descriptor)) {
+        descriptor = {value: descriptor};
+      }
+
+      if (typeof descriptor.value === 'function') {
+        descriptor.writable = true;
+      }
+
+      properties[propName] = descriptor;
     });
 
     child.prototype = Object.create(parent.prototype, properties);

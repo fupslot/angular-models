@@ -112,4 +112,14 @@ describe('BaseCollectionClass', function () {
     var clone = collection.clone();
     expect(clone.customFn()).toBeTruthy();
   });
+
+  it('be able to spyOn default methods', function () {
+    var Collection = BaseCollectionClass.extend({
+      customFn: function () { }
+    });
+    var collection = new Collection();
+    spyOn(collection, 'customFn').and.callThrough();
+    collection.customFn();
+    expect(collection.customFn).toHaveBeenCalled();
+  });
 });
