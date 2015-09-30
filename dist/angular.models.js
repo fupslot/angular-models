@@ -2,7 +2,7 @@
  * angular.models
  * Provides base classes and modules to make applications rapidly
  * @author Eugene Brodsky
- * @version v0.0.4
+ * @version v0.0.5
  * @link https://github.com/fupslot/angular-models
  * @license MIT License
  */

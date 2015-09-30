@@ -1,6 +1,6 @@
 {
   "name": "angular.models",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Provides base classes and modules to make applications rapidly",
   "main": "dist/angular.models.js",
   "homepage": "https://github.com/fupslot/angular-models",
