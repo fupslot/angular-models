@@ -51,6 +51,9 @@ angular.module('angular.models')
     var properties = {};
     var $$properties;
 
+    // This method will be depricated in near feature
+    console.warn('angular.models#extend: This method will be depricated in near feature');
+
     if (proto && hasProperty(proto, 'constructor')) {
       child = typeof proto.constructor === 'object' ? proto.constructor.value : proto.constructor;
     } else {

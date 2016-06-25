@@ -1,8 +1,8 @@
 /**
  * angular.models
  * Provides base classes and modules to make applications rapidly
- * @author Eugene Brodsky
- * @version v0.0.5
+ * @author [object Object]
+ * @version v0.0.6
  * @link https://github.com/fupslot/angular-models
  * @license MIT License
  */
@@ -1910,6 +1910,9 @@ angular.module('angular.models')
     var child;
     var properties = {};
     var $$properties;
+
+    // This method will be depricated in near feature
+    console.warn('angular.models#extend: This method will be depricated in near feature');
 
     if (proto && hasProperty(proto, 'constructor')) {
       child = typeof proto.constructor === 'object' ? proto.constructor.value : proto.constructor;

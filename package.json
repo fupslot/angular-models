@@ -1,9 +1,14 @@
 {
   "name": "angular.models",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Provides base classes and modules to make applications rapidly",
   "main": "dist/angular.models.js",
   "homepage": "https://github.com/fupslot/angular-models",
+  "author": {
+    "name": "Eugene Brodsky",
+    "email": "fupslot@gmail.com"
+  },
+  "license": "MIT License",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -14,8 +19,15 @@
     "backbone",
     "class"
   ],
-  "author": "Eugene Brodsky",
-  "license": "MIT License",
+  "files": [
+    "dist/*"
+  ],
+  "directories": {
+    "dist": "dist"
+  },
+  "engines": {
+    "node": ">=0.12.0"
+  },
   "devDependencies": {
     "connect-livereload": "^0.5.3",
     "grunt": "^0.4.5",

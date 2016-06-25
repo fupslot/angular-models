@@ -28,7 +28,9 @@
 
     "semi": [2, "always"],
 
-    "no-cond-assign": 0
+    "no-cond-assign": 0,
+
+    "no-console": 1
   },
 
   "extends": "eslint:recommended"
