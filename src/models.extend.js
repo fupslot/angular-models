@@ -2,13 +2,13 @@
 
 angular.module('angular.models')
 
-.factory('Extend', function (_) {
+.factory('Extend', function (lodash) {
   function hasProperty(obj, prop) {
     return Object.prototype.hasOwnProperty.call(obj, prop);
   }
 
   function isDescriptor(obj) {
-    return _.isObject(obj) && (hasProperty(obj, 'value') || hasProperty(obj, 'get') || hasProperty(obj, 'set'));
+    return lodash.isObject(obj) && (hasProperty(obj, 'value') || hasProperty(obj, 'get') || hasProperty(obj, 'set'));
   }
 
   function defineGetter (obj, key) {
@@ -62,10 +62,10 @@ angular.module('angular.models')
     }
 
     // Properties declared by a user
-    $$properties = _.extend({}, proto.$$properties);
+    $$properties = lodash.extend({}, proto.$$properties);
     delete proto.$$properties;
 
-    _.each($$properties, function (propValue, propName){
+    lodash.each($$properties, function (propValue, propName){
       if (typeof propValue === 'string') {
         var getter = propValue.indexOf('get;') !== -1;
         var setter = propValue.indexOf('set;') !== -1;
@@ -76,7 +76,7 @@ angular.module('angular.models')
       }
     });
 
-    _.each(proto, function(propValue, propName) {
+    lodash.each(proto, function(propValue, propName) {
       var descriptor = propValue;
 
       if (!isDescriptor(descriptor)) {
@@ -96,8 +96,8 @@ angular.module('angular.models')
     child.typeOf = function(obj) {return obj instanceof parent;};
     child.extend = Extend;
 
-    if (!_.isEmpty(statics)) {
-      _.each(statics, function (value, key) {
+    if (!lodash.isEmpty(statics)) {
+      lodash.each(statics, function (value, key) {
         Object.defineProperty(child, key, {value:value});
       });
     }

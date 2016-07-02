@@ -19,7 +19,7 @@ angular.module('angular.models')
     }
   };
 
-  this.$get = /*@ngInject*/ function($http, _, Extend, BaseEventClass) {
+  this.$get = /*@ngInject*/ function($http, lodash, Extend, BaseEventClass) {
     /**
      * @class BaseSyncClass
      * @description Override this function to change the manner in which Backbone persists
@@ -84,13 +84,13 @@ angular.module('angular.models')
         method = CRUD_MAP[method];
 
         // Default options, unless specified.
-        _.defaults(options || (options = {}));
+        lodash.defaults(options || (options = {}));
 
         // Request method, unless specified
         options.method = options.method || method;
 
         // Default JSON-request options.
-        var params = _.pick(options, ['method', 'cache', 'timeout', 'params', 'withCredentials', 'xsrfHeaderName', 'xsrfCookieName']);
+        var params = lodash.pick(options, ['method', 'cache', 'timeout', 'params', 'withCredentials', 'xsrfHeaderName', 'xsrfCookieName']);
 
         params.headers = options.headers || {};
 
@@ -99,7 +99,7 @@ angular.module('angular.models')
           params.headers['accept'] = 'application/json, text/plain, */*';
         }
 
-        params.url = options.url || _.result(model, 'url');
+        params.url = options.url || lodash.result(model, 'url');
         // Ensure that we have a URL.
         if (!params.url) {
           throw new Error('A "url" property or function must be specified');
@@ -112,10 +112,10 @@ angular.module('angular.models')
           dynamicQueryParams = model.getQueryParams();
         }
         // Query params
-        params.params = _.extend({}, dynamicQueryParams, params.params);
+        params.params = lodash.extend({}, dynamicQueryParams, params.params);
 
         // Ensure that we have the appropriate request data.
-        if (options.data == null && model && _.include(['POST', 'PUT', 'PATCH'], method)) {
+        if (options.data == null && model && lodash.include(['POST', 'PUT', 'PATCH'], method)) {
           params.headers['content-type'] = 'application/json';
           params.data = JSON.stringify(options.attrs || model.toJSON(options));
         }

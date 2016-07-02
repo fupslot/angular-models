@@ -2,7 +2,7 @@
 
 angular.module('angular.models')
 
-.factory('BaseCollectionClass', function ($q, BaseSyncClass, BaseModelClass, WrapError, _) {
+.factory('BaseCollectionClass', function ($q, BaseSyncClass, BaseModelClass, WrapError, lodash) {
 
   var BaseCollectionClass;
 
@@ -33,7 +33,7 @@ angular.module('angular.models')
       this.$reset();
       this.initialize.apply(this, arguments);
       if (models) {
-        this.reset(models, _.extend({silent: true}, options));
+        this.reset(models, lodash.extend({silent: true}, options));
       }
     },
 
@@ -51,7 +51,7 @@ angular.module('angular.models')
      * @description Initialize is an empty function by default. Override it with your own
      *              initialization logic.
      */
-    initialize: {value: _.noop, writable: true},
+    initialize: {value: lodash.noop, writable: true},
 
 
     /**
@@ -72,7 +72,7 @@ angular.module('angular.models')
      * @return {BaseModelClass}
      */
     add: function (models, options) {
-      return this.$set(models, _.extend({merge: false}, options, addOptions));
+      return this.$set(models, lodash.extend({merge: false}, options, addOptions));
     },
 
 
@@ -82,8 +82,8 @@ angular.module('angular.models')
      * @return {BaseModelClass}
      */
     remove: function remove(models, options) {
-      var singular = !_.isArray(models);
-      models = singular ? [models] : _.clone(models); // ? method 'clone' doesn't make deep clone copy
+      var singular = !lodash.isArray(models);
+      models = singular ? [models] : lodash.clone(models); // ? method 'clone' doesn't make deep clone copy
       options = options || {};
       for (var i = 0, length = models.length; i < length; i++) {
         var model = models[i] = this.get(models[i]);
@@ -116,12 +116,12 @@ angular.module('angular.models')
      * @return {BaseModelClass}
      */
     $set: function $set(models, options) {
-      options = _.defaults({}, options, setOptions);
+      options = lodash.defaults({}, options, setOptions);
       if (options.parse) {
         // models = this.parse(models, options);
-        models = _.isString(this.parse) ? _.result(models, this.parse) :  this.parse(models, options);
+        models = lodash.isString(this.parse) ? lodash.result(models, this.parse) :  this.parse(models, options);
       }
-      var singular = !_.isArray(models);
+      var singular = !lodash.isArray(models);
       models = singular ? (models ? [models] : []) : models.slice(); //slice.apply(models);
       var id, model, attrs, existing, sort;
       var at = options.at;
@@ -129,7 +129,7 @@ angular.module('angular.models')
         at += this.length + 1;
       }
       var sortable = this.comparator && (at == null) && options.sort !== false;
-      var sortAttr = _.isString(this.comparator) ? this.comparator : null;
+      var sortAttr = lodash.isString(this.comparator) ? this.comparator : null;
       var toAdd = [], toRemove = [], modelMap = {};
       var add = options.add, merge = options.merge, remove = options.remove;
       var order = !sortable && add && remove ? [] : false;
@@ -226,7 +226,7 @@ angular.module('angular.models')
 
       // Unless silenced, it's time to fire all appropriate add/sort events.
       if (!options.silent) {
-        var addOpts = at != null ? _.clone(options) : options;
+        var addOpts = at != null ? lodash.clone(options) : options;
         for (i = 0, length = toAdd.length; i < length; i++) {
           if (at != null) {
             addOpts.index = at + i;
@@ -252,13 +252,13 @@ angular.module('angular.models')
      * @return {BaseModelClass}
      */
     reset: function reset(models, options) {
-      options = options ? _.clone(options) : {};
+      options = options ? lodash.clone(options) : {};
       for (var i = 0, length = this.models.length; i < length; i++) {
         this.$removeReference(this.models[i], options);
       }
       options.previousModels = this.models;
       this.$reset();
-      models = this.add(models, _.extend({silent: true}, options));
+      models = this.add(models, lodash.extend({silent: true}, options));
       if (!options.silent) {
         this.trigger('reset', this, options);
       }
@@ -298,7 +298,7 @@ angular.module('angular.models')
      * @return {BaseModelClass}
      */
     where: function (attrs, first) {
-      var matches = _.matches(attrs);
+      var matches = lodash.matches(attrs);
       return this[first ? 'find' : 'filter'](function(model) {
         return matches(model.attributes);
       });
@@ -328,10 +328,10 @@ angular.module('angular.models')
       options || (options = {});
 
       // Run sort based on type of `comparator`.
-      if (_.isString(this.comparator) || this.comparator.length === 1) {
+      if (lodash.isString(this.comparator) || this.comparator.length === 1) {
         this.models = this.sortBy(this.comparator, this);
       } else {
-        this.models.sort(_.bind(this.comparator, this));
+        this.models.sort(lodash.bind(this.comparator, this));
       }
 
       if (!options.silent) this.trigger('sort', this, options);
@@ -345,7 +345,7 @@ angular.module('angular.models')
      * @return {type}
      */
     pluck: function (attr) {
-      return _.invoke(this.models, 'get', attr);
+      return lodash.invoke(this.models, 'get', attr);
     },
 
 
@@ -365,7 +365,7 @@ angular.module('angular.models')
      * @return {array}
      */
     toArray: function () {
-      return _.invoke(this.models, 'toJSON');
+      return lodash.invoke(this.models, 'toJSON');
     },
 
 
@@ -377,7 +377,7 @@ angular.module('angular.models')
     fetch: function fetch (options) {
       var self = this;
       return $q(function (resolve, reject) {
-        options = _.extend({}, options, {parse: true});
+        options = lodash.extend({}, options, {parse: true});
 
         options.success = function success (response) {
           self.$set(response, options);
@@ -398,7 +398,7 @@ angular.module('angular.models')
      */
     create: function (model, options) {
       var self = this;
-      options = options ? _.clone(options) : {};
+      options = options ? lodash.clone(options) : {};
       return $q(function (resolve, reject) {
         if (!(model = self.$prepareModel(model, options))) {
           return reject();
@@ -462,7 +462,7 @@ angular.module('angular.models')
         }
         return attrs;
       }
-      options = options ? _.clone(options) : {};
+      options = options ? lodash.clone(options) : {};
       options.collection = this;
       var model = new this.model(attrs, options);
       if (!model.validationError) {
@@ -541,14 +541,14 @@ angular.module('angular.models')
       'size', 'first', 'last', 'isEmpty', 'indexOf', 'indexBy'];
 
   // Mix in each Lodash method as a proxy to (Collection#models).
-  _.each(methods, function(method) {
-    if (!_[method]) { return; }
+  lodash.each(methods, function(method) {
+    if (!lodash[method]) { return; }
 
     Object.defineProperty(BaseCollectionClass.prototype, method, {
       value: function () {
         var args = [].slice.call(arguments);
         args.unshift(this.models);
-        return _[method].apply(_, args);
+        return lodash[method].apply(lodash, args);
       }
     });
   });

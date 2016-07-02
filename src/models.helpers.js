@@ -9,17 +9,17 @@ angular.module('angular.models')
   };
 })
 
-.factory('WrapError', function (_) {
+.factory('WrapError', function (lodash) {
   'use strict';
   // Wrap an optional error callback with a fallback error event.
   function WrapError (model, reject, options) {
     // Arguments: xhr, textStatus, errorThrown
     options.error = function () {
-      var args = [].concat([model], _.toArray(arguments));
+      var args = [].concat([model], lodash.toArray(arguments));
       if (model) {
         model.trigger.apply(model, [].concat(['error'], args));
       }
-      var argsObj = _.zipObject(['model', 'xhr', 'textStatus', 'error'], args);
+      var argsObj = lodash.zipObject(['model', 'xhr', 'textStatus', 'error'], args);
       if (reject) {
         reject(argsObj);
       }

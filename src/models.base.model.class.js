@@ -2,7 +2,7 @@
 
 angular.module('angular.models')
 
-.factory('BaseModelClass', function ($q, $parse, BaseSyncClass, WrapError, ValidationExceptionClass, _) {
+.factory('BaseModelClass', function ($q, $parse, BaseSyncClass, WrapError, ValidationExceptionClass, lodash) {
 
   // var proto;
 
@@ -89,17 +89,17 @@ angular.module('angular.models')
     constructor: function(attributes, options){
       var attrs = attributes || {};
       options = options || {};
-      this.cid = _.uniqueId('c');
+      this.cid = lodash.uniqueId('c');
       this.attributes = {};
 
       if (options.parse) {
-        attrs = _.isString(this.parse) ? _.result(attrs, this.parse, {}) : (this.parse(attrs, options) || {});
+        attrs = lodash.isString(this.parse) ? lodash.result(attrs, this.parse, {}) : (this.parse(attrs, options) || {});
       }
       if (options.collection) {
         this.collection = options.collection;
       }
 
-      attrs = _.defaults({}, attrs, _.result(this, 'defaults'));
+      attrs = lodash.defaults({}, attrs, lodash.result(this, 'defaults'));
 
       this.$set(attrs, options);
       this.changed = {};
@@ -179,7 +179,7 @@ angular.module('angular.models')
      * @description Initialize is an empty function by default. Override it with your own
      *              initialization logic.
      */
-    initialize: {value: _.noop, writable: true},
+    initialize: {value: lodash.noop, writable: true},
 
 
     /**
@@ -197,10 +197,10 @@ angular.module('angular.models')
      */
     toJSON: function toJSON() {
       var self = this;
-      var obj = _.cloneDeep(this.attributes);
+      var obj = lodash.cloneDeep(this.attributes);
 
-      if (_.isArray(this.serializeModel) && this.serializeModel.length) {
-        _.each(this.serializeModel, function (key) {
+      if (lodash.isArray(this.serializeModel) && this.serializeModel.length) {
+        lodash.each(this.serializeModel, function (key) {
           obj[key] = ('toJSON' in self[key]) ? self[key].toJSON() : null;
         });
       }
@@ -284,7 +284,7 @@ angular.module('angular.models')
       this._changing  = true;
 
       if (!changing) {
-        this._previousAttributes = _.clone(this.attributes);
+        this._previousAttributes = lodash.clone(this.attributes);
         this.changed = {};
       }
 
@@ -299,10 +299,10 @@ angular.module('angular.models')
       // For each `set` attribute, update or delete the current value.
       for (attr in attrs) {
         val = attrs[attr];
-        if (!_.isEqual(current[attr], val)) {
+        if (!lodash.isEqual(current[attr], val)) {
           changes.push(attr);
         }
-        if (!_.isEqual(prev[attr], val)) {
+        if (!lodash.isEqual(prev[attr], val)) {
           this.changed[attr] = val;
         } else {
           delete this.changed[attr];
@@ -350,7 +350,7 @@ angular.module('angular.models')
      *              if the attribute doesn't exist.
      */
     unset: function unset (attr, options) {
-      return this.$set(attr, void 0, _.extend({}, options, {unset: true}));
+      return this.$set(attr, void 0, lodash.extend({}, options, {unset: true}));
     },
 
 
@@ -363,7 +363,7 @@ angular.module('angular.models')
       for (var key in this.attributes) {
         attrs[key] = void 0;
       }
-      return this.$set(attrs, _.extend({}, options, {unset: true}));
+      return this.$set(attrs, lodash.extend({}, options, {unset: true}));
     },
 
 
@@ -376,9 +376,9 @@ angular.module('angular.models')
      */
     hasChanged: function hasChanged (attr) {
       if (attr == null) {
-        return !_.isEmpty(this.changed);
+        return !lodash.isEmpty(this.changed);
       }
-      return _.has(this.changed, attr);
+      return lodash.has(this.changed, attr);
     },
 
 
@@ -395,12 +395,12 @@ angular.module('angular.models')
      */
     changedAttributes: function changedAttributes (diff) {
       if (!diff) {
-        return this.hasChanged() ? _.clone(this.changed) : false;
+        return this.hasChanged() ? lodash.clone(this.changed) : false;
       }
       var val, changed = false;
       var old = this._changing ? this._previousAttributes : this.attributes;
       for (var attr in diff) {
-        if (_.isEqual(old[attr], (val = diff[attr]))) {
+        if (lodash.isEqual(old[attr], (val = diff[attr]))) {
           continue;
         }
         (changed || (changed = {}))[attr] = val;
@@ -431,7 +431,7 @@ angular.module('angular.models')
      * @return {object}
      */
     previousAttributes: function previousAttributes () {
-      return _.clone(this._previousAttributes);
+      return lodash.clone(this._previousAttributes);
     },
 
 
@@ -443,7 +443,7 @@ angular.module('angular.models')
      * @return {string}
      */
     url: function url () {
-      var base = _.result(this, 'urlRoot') || _.result(this.collection, 'url');
+      var base = lodash.result(this, 'urlRoot') || lodash.result(this.collection, 'url');
 
       if (base == null) {
         throw new Error('A "url" property or function must be specified');
@@ -481,7 +481,7 @@ angular.module('angular.models')
      * @return {boolean}
      */
     isValid: function isValid (options) {
-      return this.$validate({}, _.extend(options || {}, { validate: true }));
+      return this.$validate({}, lodash.extend(options || {}, { validate: true }));
     },
 
 
@@ -499,7 +499,7 @@ angular.module('angular.models')
      * @return {Promise}
      */
     save: function save (options) {
-      options = _.extend({validate: true}, options);
+      options = lodash.extend({validate: true}, options);
       var model = this;
       var operation = model.isNew() ? 'create' : 'update';
 
@@ -532,7 +532,7 @@ angular.module('angular.models')
      */
     fetch: function fetch (options) {
       var model = this;
-      options = _.extend({}, options);
+      options = lodash.extend({}, options);
 
       return $q(function (resolve, reject) {
         options.success = function (response) {
@@ -554,7 +554,7 @@ angular.module('angular.models')
      * @return {Promise}
      */
     destroy: function destroy (options) {
-      options = _.extend({}, options);
+      options = lodash.extend({}, options);
       var model = this;
 
       var destroy = function() {
@@ -616,19 +616,19 @@ angular.module('angular.models')
     getQueryParams: function getQueryParams (params) {
       var values = {};
       params = params || {};
-      _.each(this.defaultQueryParams, function(value, key) {
-        if (_.startsWith(value, '@')) {
-          values[key] = this.$get(_.trimLeft(value, '@'));
+      lodash.each(this.defaultQueryParams, function(value, key) {
+        if (lodash.startsWith(value, '@')) {
+          values[key] = this.$get(lodash.trimLeft(value, '@'));
         }
-        else if (_.startsWith(value, '=')) {
-          values[key] = _.result(this, _.trimLeft(value, '='), null);
+        else if (lodash.startsWith(value, '=')) {
+          values[key] = lodash.result(this, lodash.trimLeft(value, '='), null);
         }
         else {
           values[key] = value;
         }
       }, this);
 
-      return _.extend({}, values, params);
+      return lodash.extend({}, values, params);
     },
 
 
@@ -643,12 +643,12 @@ angular.module('angular.models')
       if (!options.validate || !this.validate) {
         return true;
       }
-      attrs = _.extend({}, this.attributes, attrs);
+      attrs = lodash.extend({}, this.attributes, attrs);
       var error = this.validationError = this.validate(attrs, options) || null;
       if (!(error instanceof ValidationExceptionClass)) {
         return true;
       }
-      this.trigger('invalid', this, error, _.extend(options, {validationError: error}));
+      this.trigger('invalid', this, error, lodash.extend(options, {validationError: error}));
       return false;
     }
 

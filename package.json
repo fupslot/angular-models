@@ -1,6 +1,6 @@
 {
   "name": "angular.models",
-  "version": "0.0.6",
+  "version": "1.0.0",
   "description": "Provides base classes and modules to make applications rapidly",
   "main": "dist/angular.models.js",
   "homepage": "https://github.com/fupslot/angular-models",
@@ -53,5 +53,10 @@
     "karma-phantomjs-launcher": "^0.2.1",
     "karma-spec-reporter": "0.0.20",
     "phantomjs": "^1.9.18"
+  },
+  "dependencies": {
+    "angular": "^1.5.7",
+    "angular-mocks": "^1.5.7",
+    "ng-lodash": "^0.2.3"
   }
 }

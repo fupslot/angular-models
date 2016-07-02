@@ -6,9 +6,9 @@ module.exports = function (grunt) {
   });
 
   var karmaDefaultFiles = [
-    'vendors/lodash/lodash.js',
-    'vendors/angular/angular.js',
-    'vendors/angular-mocks/angular-mocks.js'
+    'node_modules/angular/angular.js',
+    'node_modules/ng-lodash/build/ng-lodash.js',
+    'node_modules/angular-mocks/angular-mocks.js'
   ];
 
   grunt.initConfig({
@@ -223,10 +223,10 @@ module.exports = function (grunt) {
 
   grunt.registerTask('jasmine', function(target){
     if (target === 'build') {
-      grunt.task.run(['injector:build', 'injector:spec', 'wiredep:jasmine', 'concat:dist', 'ngAnnotate:dist', 'uglify:dist', 'connect:test']);
+      grunt.task.run(['injector:build', 'injector:spec', 'concat:dist', 'ngAnnotate:dist', 'uglify:dist', 'connect:test']);
     }
     else {
-      grunt.task.run(['injector:src', 'injector:spec', 'wiredep:jasmine', 'connect:test']);
+      grunt.task.run(['injector:src', 'injector:spec', 'connect:test']);
     }
   });
 
@@ -245,7 +245,7 @@ module.exports = function (grunt) {
       grunt.task.run([
         'injector:src',
         'injector:spec',
-        'wiredep:jasmine',
+        // 'wiredep:jasmine',
         'clean:dist',
         'concat:dist',
         'karma:unit'

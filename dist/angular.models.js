@@ -2,14 +2,14 @@
  * angular.models
  * Provides base classes and modules to make applications rapidly
  * @author [object Object]
- * @version v0.0.6
+ * @version v1.0.0
  * @link https://github.com/fupslot/angular-models
  * @license MIT License
  */
 
 (function (window, angular, undefined) {
 'use strict';
-angular.module('angular.models', []);
+angular.module('angular.models', ['ngLodash']);
 
 'use strict';
 
@@ -48,7 +48,7 @@ angular.module('angular.models')
 
 angular.module('angular.models')
 
-.factory('BaseCollectionClass', ['$q', 'BaseSyncClass', 'BaseModelClass', 'WrapError', '_', function ($q, BaseSyncClass, BaseModelClass, WrapError, _) {
+.factory('BaseCollectionClass', ['$q', 'BaseSyncClass', 'BaseModelClass', 'WrapError', 'lodash', function ($q, BaseSyncClass, BaseModelClass, WrapError, lodash) {
 
   var BaseCollectionClass;
 
@@ -79,7 +79,7 @@ angular.module('angular.models')
       this.$reset();
       this.initialize.apply(this, arguments);
       if (models) {
-        this.reset(models, _.extend({silent: true}, options));
+        this.reset(models, lodash.extend({silent: true}, options));
       }
     },
 
@@ -97,7 +97,7 @@ angular.module('angular.models')
      * @description Initialize is an empty function by default. Override it with your own
      *              initialization logic.
      */
-    initialize: {value: _.noop, writable: true},
+    initialize: {value: lodash.noop, writable: true},
 
 
     /**
@@ -118,7 +118,7 @@ angular.module('angular.models')
      * @return {BaseModelClass}
      */
     add: function (models, options) {
-      return this.$set(models, _.extend({merge: false}, options, addOptions));
+      return this.$set(models, lodash.extend({merge: false}, options, addOptions));
     },
 
 
@@ -128,8 +128,8 @@ angular.module('angular.models')
      * @return {BaseModelClass}
      */
     remove: function remove(models, options) {
-      var singular = !_.isArray(models);
-      models = singular ? [models] : _.clone(models); // ? method 'clone' doesn't make deep clone copy
+      var singular = !lodash.isArray(models);
+      models = singular ? [models] : lodash.clone(models); // ? method 'clone' doesn't make deep clone copy
       options = options || {};
       for (var i = 0, length = models.length; i < length; i++) {
         var model = models[i] = this.get(models[i]);
@@ -162,12 +162,12 @@ angular.module('angular.models')
      * @return {BaseModelClass}
      */
     $set: function $set(models, options) {
-      options = _.defaults({}, options, setOptions);
+      options = lodash.defaults({}, options, setOptions);
       if (options.parse) {
         // models = this.parse(models, options);
-        models = _.isString(this.parse) ? _.result(models, this.parse) :  this.parse(models, options);
+        models = lodash.isString(this.parse) ? lodash.result(models, this.parse) :  this.parse(models, options);
       }
-      var singular = !_.isArray(models);
+      var singular = !lodash.isArray(models);
       models = singular ? (models ? [models] : []) : models.slice(); //slice.apply(models);
       var id, model, attrs, existing, sort;
       var at = options.at;
@@ -175,7 +175,7 @@ angular.module('angular.models')
         at += this.length + 1;
       }
       var sortable = this.comparator && (at == null) && options.sort !== false;
-      var sortAttr = _.isString(this.comparator) ? this.comparator : null;
+      var sortAttr = lodash.isString(this.comparator) ? this.comparator : null;
       var toAdd = [], toRemove = [], modelMap = {};
       var add = options.add, merge = options.merge, remove = options.remove;
       var order = !sortable && add && remove ? [] : false;
@@ -272,7 +272,7 @@ angular.module('angular.models')
 
       // Unless silenced, it's time to fire all appropriate add/sort events.
       if (!options.silent) {
-        var addOpts = at != null ? _.clone(options) : options;
+        var addOpts = at != null ? lodash.clone(options) : options;
         for (i = 0, length = toAdd.length; i < length; i++) {
           if (at != null) {
             addOpts.index = at + i;
@@ -298,13 +298,13 @@ angular.module('angular.models')
      * @return {BaseModelClass}
      */
     reset: function reset(models, options) {
-      options = options ? _.clone(options) : {};
+      options = options ? lodash.clone(options) : {};
       for (var i = 0, length = this.models.length; i < length; i++) {
         this.$removeReference(this.models[i], options);
       }
       options.previousModels = this.models;
       this.$reset();
-      models = this.add(models, _.extend({silent: true}, options));
+      models = this.add(models, lodash.extend({silent: true}, options));
       if (!options.silent) {
         this.trigger('reset', this, options);
       }
@@ -344,7 +344,7 @@ angular.module('angular.models')
      * @return {BaseModelClass}
      */
     where: function (attrs, first) {
-      var matches = _.matches(attrs);
+      var matches = lodash.matches(attrs);
       return this[first ? 'find' : 'filter'](function(model) {
         return matches(model.attributes);
       });
@@ -374,10 +374,10 @@ angular.module('angular.models')
       options || (options = {});
 
       // Run sort based on type of `comparator`.
-      if (_.isString(this.comparator) || this.comparator.length === 1) {
+      if (lodash.isString(this.comparator) || this.comparator.length === 1) {
         this.models = this.sortBy(this.comparator, this);
       } else {
-        this.models.sort(_.bind(this.comparator, this));
+        this.models.sort(lodash.bind(this.comparator, this));
       }
 
       if (!options.silent) this.trigger('sort', this, options);
@@ -391,7 +391,7 @@ angular.module('angular.models')
      * @return {type}
      */
     pluck: function (attr) {
-      return _.invoke(this.models, 'get', attr);
+      return lodash.invoke(this.models, 'get', attr);
     },
 
 
@@ -411,7 +411,7 @@ angular.module('angular.models')
      * @return {array}
      */
     toArray: function () {
-      return _.invoke(this.models, 'toJSON');
+      return lodash.invoke(this.models, 'toJSON');
     },
 
 
@@ -423,7 +423,7 @@ angular.module('angular.models')
     fetch: function fetch (options) {
       var self = this;
       return $q(function (resolve, reject) {
-        options = _.extend({}, options, {parse: true});
+        options = lodash.extend({}, options, {parse: true});
 
         options.success = function success (response) {
           self.$set(response, options);
@@ -444,7 +444,7 @@ angular.module('angular.models')
      */
     create: function (model, options) {
       var self = this;
-      options = options ? _.clone(options) : {};
+      options = options ? lodash.clone(options) : {};
       return $q(function (resolve, reject) {
         if (!(model = self.$prepareModel(model, options))) {
           return reject();
@@ -508,7 +508,7 @@ angular.module('angular.models')
         }
         return attrs;
       }
-      options = options ? _.clone(options) : {};
+      options = options ? lodash.clone(options) : {};
       options.collection = this;
       var model = new this.model(attrs, options);
       if (!model.validationError) {
@@ -587,14 +587,14 @@ angular.module('angular.models')
       'size', 'first', 'last', 'isEmpty', 'indexOf', 'indexBy'];
 
   // Mix in each Lodash method as a proxy to (Collection#models).
-  _.each(methods, function(method) {
-    if (!_[method]) { return; }
+  lodash.each(methods, function(method) {
+    if (!lodash[method]) { return; }
 
     Object.defineProperty(BaseCollectionClass.prototype, method, {
       value: function () {
         var args = [].slice.call(arguments);
         args.unshift(this.models);
-        return _[method].apply(_, args);
+        return lodash[method].apply(lodash, args);
       }
     });
   });
@@ -606,7 +606,7 @@ angular.module('angular.models')
 
 angular.module('angular.models')
 
-.service('BaseEventClass', ['BaseClass', '_', function (BaseClass, _) {
+.service('BaseEventClass', ['BaseClass', 'lodash', function (BaseClass, lodash) {
 
   /**
    * @class BaseEventClass
@@ -659,7 +659,7 @@ angular.module('angular.models')
       if (callback !== void 0 && 'context' in opts && opts.context === void 0) {
         opts.context = callback;
       }
-      for (names = _.keys(name); i < names.length; i++) {
+      for (names = lodash.keys(name); i < names.length; i++) {
         memo = iteratee(memo, names[i], name[names[i]], opts);
       }
     } else if (name && eventSplitter.test(name)) {
@@ -700,7 +700,7 @@ angular.module('angular.models')
 
     // Delete all events listeners and "drop" events.
     if (!name && !callback && !context) {
-      var ids = _.keys(listeners);
+      var ids = lodash.keys(listeners);
       for (; i < ids.length; i++) {
         listening = listeners[ids[i]];
         delete listeners[listening.id];
@@ -709,7 +709,7 @@ angular.module('angular.models')
       return null;
     }
 
-    var names = name ? [name] : _.keys(events);
+    var names = name ? [name] : lodash.keys(events);
     for (; i < names.length; i++) {
       name = names[i];
       var handlers = events[name];
@@ -743,14 +743,14 @@ angular.module('angular.models')
         delete events[name];
       }
     }
-    if (_.size(events)) { return events; }
+    if (lodash.size(events)) { return events; }
   };
 
   // Reduces the event callbacks into a map of `{event: onceWrapper}`.
   // `offer` unbinds the `onceWrapper` after it has been called.
   var onceMap = function(map, name, callback, offer) {
     if (callback) {
-      var once = map[name] = _.once(function() {
+      var once = map[name] = lodash.once(function() {
         offer(name, once);
         callback.apply(this, arguments);
       });
@@ -811,14 +811,14 @@ angular.module('angular.models')
      */
     listenTo: function listenTo(obj, name, callback) {
       if (!obj) { return this; }
-      var id = obj._listenId || (obj._listenId = _.uniqueId('l'));
+      var id = obj._listenId || (obj._listenId = lodash.uniqueId('l'));
       var listeningTo = this._listeningTo || (this._listeningTo = {});
       var listening = listeningTo[id];
 
       // This object is not listening to any other events on `obj` yet.
       // Setup the necessary references to track the listening callbacks.
       if (!listening) {
-        var thisId = this._listenId || (this._listenId = _.uniqueId('l'));
+        var thisId = this._listenId || (this._listenId = lodash.uniqueId('l'));
         listening = listeningTo[id] = {obj: obj, objId: id, id: thisId, listeningTo: listeningTo, count: 0};
       }
 
@@ -860,7 +860,7 @@ angular.module('angular.models')
       var listeningTo = this._listeningTo;
       if (!listeningTo) { return this; }
 
-      var ids = obj ? [obj._listenId] : _.keys(listeningTo);
+      var ids = obj ? [obj._listenId] : lodash.keys(listeningTo);
 
       for (var i = 0; i < ids.length; i++) {
         var listening = listeningTo[ids[i]];
@@ -871,7 +871,7 @@ angular.module('angular.models')
 
         listening.obj.off(name, callback, this);
       }
-      if (_.isEmpty(listeningTo)) { this._listeningTo = void 0; }
+      if (lodash.isEmpty(listeningTo)) { this._listeningTo = void 0; }
 
       return this;
     },
@@ -889,7 +889,7 @@ angular.module('angular.models')
      */
     once: function once(name, callback, context) {
       // Map the event into a `{event: once}` object.
-      var events = eventsApi(onceMap, {}, name, callback, _.bind(this.off, this));
+      var events = eventsApi(onceMap, {}, name, callback, lodash.bind(this.off, this));
       return this.on(events, void 0, context);
     },
 
@@ -903,7 +903,7 @@ angular.module('angular.models')
      */
     listenToOnce: function listenToOnce(obj, name, callback) {
       // Map the event into a `{event: once}` object.
-      var events = eventsApi(onceMap, {}, name, callback, _.bind(this.stopListening, this, obj));
+      var events = eventsApi(onceMap, {}, name, callback, lodash.bind(this.stopListening, this, obj));
       return this.listenTo(obj, events);
     },
 
@@ -959,7 +959,7 @@ angular.module('angular.models')
 
 angular.module('angular.models')
 
-.factory('BaseModelClass', ['$q', '$parse', 'BaseSyncClass', 'WrapError', 'ValidationExceptionClass', '_', function ($q, $parse, BaseSyncClass, WrapError, ValidationExceptionClass, _) {
+.factory('BaseModelClass', ['$q', '$parse', 'BaseSyncClass', 'WrapError', 'ValidationExceptionClass', 'lodash', function ($q, $parse, BaseSyncClass, WrapError, ValidationExceptionClass, lodash) {
 
   // var proto;
 
@@ -1046,17 +1046,17 @@ angular.module('angular.models')
     constructor: function(attributes, options){
       var attrs = attributes || {};
       options = options || {};
-      this.cid = _.uniqueId('c');
+      this.cid = lodash.uniqueId('c');
       this.attributes = {};
 
       if (options.parse) {
-        attrs = _.isString(this.parse) ? _.result(attrs, this.parse, {}) : (this.parse(attrs, options) || {});
+        attrs = lodash.isString(this.parse) ? lodash.result(attrs, this.parse, {}) : (this.parse(attrs, options) || {});
       }
       if (options.collection) {
         this.collection = options.collection;
       }
 
-      attrs = _.defaults({}, attrs, _.result(this, 'defaults'));
+      attrs = lodash.defaults({}, attrs, lodash.result(this, 'defaults'));
 
       this.$set(attrs, options);
       this.changed = {};
@@ -1136,7 +1136,7 @@ angular.module('angular.models')
      * @description Initialize is an empty function by default. Override it with your own
      *              initialization logic.
      */
-    initialize: {value: _.noop, writable: true},
+    initialize: {value: lodash.noop, writable: true},
 
 
     /**
@@ -1154,10 +1154,10 @@ angular.module('angular.models')
      */
     toJSON: function toJSON() {
       var self = this;
-      var obj = _.cloneDeep(this.attributes);
+      var obj = lodash.cloneDeep(this.attributes);
 
-      if (_.isArray(this.serializeModel) && this.serializeModel.length) {
-        _.each(this.serializeModel, function (key) {
+      if (lodash.isArray(this.serializeModel) && this.serializeModel.length) {
+        lodash.each(this.serializeModel, function (key) {
           obj[key] = ('toJSON' in self[key]) ? self[key].toJSON() : null;
         });
       }
@@ -1241,7 +1241,7 @@ angular.module('angular.models')
       this._changing  = true;
 
       if (!changing) {
-        this._previousAttributes = _.clone(this.attributes);
+        this._previousAttributes = lodash.clone(this.attributes);
         this.changed = {};
       }
 
@@ -1256,10 +1256,10 @@ angular.module('angular.models')
       // For each `set` attribute, update or delete the current value.
       for (attr in attrs) {
         val = attrs[attr];
-        if (!_.isEqual(current[attr], val)) {
+        if (!lodash.isEqual(current[attr], val)) {
           changes.push(attr);
         }
-        if (!_.isEqual(prev[attr], val)) {
+        if (!lodash.isEqual(prev[attr], val)) {
           this.changed[attr] = val;
         } else {
           delete this.changed[attr];
@@ -1307,7 +1307,7 @@ angular.module('angular.models')
      *              if the attribute doesn't exist.
      */
     unset: function unset (attr, options) {
-      return this.$set(attr, void 0, _.extend({}, options, {unset: true}));
+      return this.$set(attr, void 0, lodash.extend({}, options, {unset: true}));
     },
 
 
@@ -1320,7 +1320,7 @@ angular.module('angular.models')
       for (var key in this.attributes) {
         attrs[key] = void 0;
       }
-      return this.$set(attrs, _.extend({}, options, {unset: true}));
+      return this.$set(attrs, lodash.extend({}, options, {unset: true}));
     },
 
 
@@ -1333,9 +1333,9 @@ angular.module('angular.models')
      */
     hasChanged: function hasChanged (attr) {
       if (attr == null) {
-        return !_.isEmpty(this.changed);
+        return !lodash.isEmpty(this.changed);
       }
-      return _.has(this.changed, attr);
+      return lodash.has(this.changed, attr);
     },
 
 
@@ -1352,12 +1352,12 @@ angular.module('angular.models')
      */
     changedAttributes: function changedAttributes (diff) {
       if (!diff) {
-        return this.hasChanged() ? _.clone(this.changed) : false;
+        return this.hasChanged() ? lodash.clone(this.changed) : false;
       }
       var val, changed = false;
       var old = this._changing ? this._previousAttributes : this.attributes;
       for (var attr in diff) {
-        if (_.isEqual(old[attr], (val = diff[attr]))) {
+        if (lodash.isEqual(old[attr], (val = diff[attr]))) {
           continue;
         }
         (changed || (changed = {}))[attr] = val;
@@ -1388,7 +1388,7 @@ angular.module('angular.models')
      * @return {object}
      */
     previousAttributes: function previousAttributes () {
-      return _.clone(this._previousAttributes);
+      return lodash.clone(this._previousAttributes);
     },
 
 
@@ -1400,7 +1400,7 @@ angular.module('angular.models')
      * @return {string}
      */
     url: function url () {
-      var base = _.result(this, 'urlRoot') || _.result(this.collection, 'url');
+      var base = lodash.result(this, 'urlRoot') || lodash.result(this.collection, 'url');
 
       if (base == null) {
         throw new Error('A "url" property or function must be specified');
@@ -1438,7 +1438,7 @@ angular.module('angular.models')
      * @return {boolean}
      */
     isValid: function isValid (options) {
-      return this.$validate({}, _.extend(options || {}, { validate: true }));
+      return this.$validate({}, lodash.extend(options || {}, { validate: true }));
     },
 
 
@@ -1456,7 +1456,7 @@ angular.module('angular.models')
      * @return {Promise}
      */
     save: function save (options) {
-      options = _.extend({validate: true}, options);
+      options = lodash.extend({validate: true}, options);
       var model = this;
       var operation = model.isNew() ? 'create' : 'update';
 
@@ -1489,7 +1489,7 @@ angular.module('angular.models')
      */
     fetch: function fetch (options) {
       var model = this;
-      options = _.extend({}, options);
+      options = lodash.extend({}, options);
 
       return $q(function (resolve, reject) {
         options.success = function (response) {
@@ -1511,7 +1511,7 @@ angular.module('angular.models')
      * @return {Promise}
      */
     destroy: function destroy (options) {
-      options = _.extend({}, options);
+      options = lodash.extend({}, options);
       var model = this;
 
       var destroy = function() {
@@ -1573,19 +1573,19 @@ angular.module('angular.models')
     getQueryParams: function getQueryParams (params) {
       var values = {};
       params = params || {};
-      _.each(this.defaultQueryParams, function(value, key) {
-        if (_.startsWith(value, '@')) {
-          values[key] = this.$get(_.trimLeft(value, '@'));
+      lodash.each(this.defaultQueryParams, function(value, key) {
+        if (lodash.startsWith(value, '@')) {
+          values[key] = this.$get(lodash.trimLeft(value, '@'));
         }
-        else if (_.startsWith(value, '=')) {
-          values[key] = _.result(this, _.trimLeft(value, '='), null);
+        else if (lodash.startsWith(value, '=')) {
+          values[key] = lodash.result(this, lodash.trimLeft(value, '='), null);
         }
         else {
           values[key] = value;
         }
       }, this);
 
-      return _.extend({}, values, params);
+      return lodash.extend({}, values, params);
     },
 
 
@@ -1600,12 +1600,12 @@ angular.module('angular.models')
       if (!options.validate || !this.validate) {
         return true;
       }
-      attrs = _.extend({}, this.attributes, attrs);
+      attrs = lodash.extend({}, this.attributes, attrs);
       var error = this.validationError = this.validate(attrs, options) || null;
       if (!(error instanceof ValidationExceptionClass)) {
         return true;
       }
-      this.trigger('invalid', this, error, _.extend(options, {validationError: error}));
+      this.trigger('invalid', this, error, lodash.extend(options, {validationError: error}));
       return false;
     }
 
@@ -1669,7 +1669,7 @@ angular.module('angular.models')
     }
   };
 
-  this.$get = /*@ngInject*/ ['$http', '_', 'Extend', 'BaseEventClass', function($http, _, Extend, BaseEventClass) {
+  this.$get = /*@ngInject*/ ['$http', 'lodash', 'Extend', 'BaseEventClass', function($http, lodash, Extend, BaseEventClass) {
     /**
      * @class BaseSyncClass
      * @description Override this function to change the manner in which Backbone persists
@@ -1734,13 +1734,13 @@ angular.module('angular.models')
         method = CRUD_MAP[method];
 
         // Default options, unless specified.
-        _.defaults(options || (options = {}));
+        lodash.defaults(options || (options = {}));
 
         // Request method, unless specified
         options.method = options.method || method;
 
         // Default JSON-request options.
-        var params = _.pick(options, ['method', 'cache', 'timeout', 'params', 'withCredentials', 'xsrfHeaderName', 'xsrfCookieName']);
+        var params = lodash.pick(options, ['method', 'cache', 'timeout', 'params', 'withCredentials', 'xsrfHeaderName', 'xsrfCookieName']);
 
         params.headers = options.headers || {};
 
@@ -1749,7 +1749,7 @@ angular.module('angular.models')
           params.headers['accept'] = 'application/json, text/plain, */*';
         }
 
-        params.url = options.url || _.result(model, 'url');
+        params.url = options.url || lodash.result(model, 'url');
         // Ensure that we have a URL.
         if (!params.url) {
           throw new Error('A "url" property or function must be specified');
@@ -1762,10 +1762,10 @@ angular.module('angular.models')
           dynamicQueryParams = model.getQueryParams();
         }
         // Query params
-        params.params = _.extend({}, dynamicQueryParams, params.params);
+        params.params = lodash.extend({}, dynamicQueryParams, params.params);
 
         // Ensure that we have the appropriate request data.
-        if (options.data == null && model && _.include(['POST', 'PUT', 'PATCH'], method)) {
+        if (options.data == null && model && lodash.include(['POST', 'PUT', 'PATCH'], method)) {
           params.headers['content-type'] = 'application/json';
           params.data = JSON.stringify(options.attrs || model.toJSON(options));
         }
@@ -1862,13 +1862,13 @@ angular.module('angular.models')
 
 angular.module('angular.models')
 
-.factory('Extend', ['_', function (_) {
+.factory('Extend', ['lodash', function (lodash) {
   function hasProperty(obj, prop) {
     return Object.prototype.hasOwnProperty.call(obj, prop);
   }
 
   function isDescriptor(obj) {
-    return _.isObject(obj) && (hasProperty(obj, 'value') || hasProperty(obj, 'get') || hasProperty(obj, 'set'));
+    return lodash.isObject(obj) && (hasProperty(obj, 'value') || hasProperty(obj, 'get') || hasProperty(obj, 'set'));
   }
 
   function defineGetter (obj, key) {
@@ -1922,10 +1922,10 @@ angular.module('angular.models')
     }
 
     // Properties declared by a user
-    $$properties = _.extend({}, proto.$$properties);
+    $$properties = lodash.extend({}, proto.$$properties);
     delete proto.$$properties;
 
-    _.each($$properties, function (propValue, propName){
+    lodash.each($$properties, function (propValue, propName){
       if (typeof propValue === 'string') {
         var getter = propValue.indexOf('get;') !== -1;
         var setter = propValue.indexOf('set;') !== -1;
@@ -1936,7 +1936,7 @@ angular.module('angular.models')
       }
     });
 
-    _.each(proto, function(propValue, propName) {
+    lodash.each(proto, function(propValue, propName) {
       var descriptor = propValue;
 
       if (!isDescriptor(descriptor)) {
@@ -1956,8 +1956,8 @@ angular.module('angular.models')
     child.typeOf = function(obj) {return obj instanceof parent;};
     child.extend = Extend;
 
-    if (!_.isEmpty(statics)) {
-      _.each(statics, function (value, key) {
+    if (!lodash.isEmpty(statics)) {
+      lodash.each(statics, function (value, key) {
         Object.defineProperty(child, key, {value:value});
       });
     }
@@ -1979,17 +1979,17 @@ angular.module('angular.models')
   };
 }])
 
-.factory('WrapError', ['_', function (_) {
+.factory('WrapError', ['lodash', function (lodash) {
   'use strict';
   // Wrap an optional error callback with a fallback error event.
   function WrapError (model, reject, options) {
     // Arguments: xhr, textStatus, errorThrown
     options.error = function () {
-      var args = [].concat([model], _.toArray(arguments));
+      var args = [].concat([model], lodash.toArray(arguments));
       if (model) {
         model.trigger.apply(model, [].concat(['error'], args));
       }
-      var argsObj = _.zipObject(['model', 'xhr', 'textStatus', 'error'], args);
+      var argsObj = lodash.zipObject(['model', 'xhr', 'textStatus', 'error'], args);
       if (reject) {
         reject(argsObj);
       }
@@ -1998,14 +1998,4 @@ angular.module('angular.models')
 
   return WrapError;
 }]);
-
-'use strict';
-
-angular.module('angular.models')
-
-// Lodash reference
-.factory('_', function () {
-  'use strict';
-  return window._;
-});
 })(window, window.angular);

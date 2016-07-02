@@ -2,7 +2,7 @@
 
 angular.module('angular.models')
 
-.service('BaseEventClass', function (BaseClass, _) {
+.service('BaseEventClass', function (BaseClass, lodash) {
 
   /**
    * @class BaseEventClass
@@ -55,7 +55,7 @@ angular.module('angular.models')
       if (callback !== void 0 && 'context' in opts && opts.context === void 0) {
         opts.context = callback;
       }
-      for (names = _.keys(name); i < names.length; i++) {
+      for (names = lodash.keys(name); i < names.length; i++) {
         memo = iteratee(memo, names[i], name[names[i]], opts);
       }
     } else if (name && eventSplitter.test(name)) {
@@ -96,7 +96,7 @@ angular.module('angular.models')
 
     // Delete all events listeners and "drop" events.
     if (!name && !callback && !context) {
-      var ids = _.keys(listeners);
+      var ids = lodash.keys(listeners);
       for (; i < ids.length; i++) {
         listening = listeners[ids[i]];
         delete listeners[listening.id];
@@ -105,7 +105,7 @@ angular.module('angular.models')
       return null;
     }
 
-    var names = name ? [name] : _.keys(events);
+    var names = name ? [name] : lodash.keys(events);
     for (; i < names.length; i++) {
       name = names[i];
       var handlers = events[name];
@@ -139,14 +139,14 @@ angular.module('angular.models')
         delete events[name];
       }
     }
-    if (_.size(events)) { return events; }
+    if (lodash.size(events)) { return events; }
   };
 
   // Reduces the event callbacks into a map of `{event: onceWrapper}`.
   // `offer` unbinds the `onceWrapper` after it has been called.
   var onceMap = function(map, name, callback, offer) {
     if (callback) {
-      var once = map[name] = _.once(function() {
+      var once = map[name] = lodash.once(function() {
         offer(name, once);
         callback.apply(this, arguments);
       });
@@ -207,14 +207,14 @@ angular.module('angular.models')
      */
     listenTo: function listenTo(obj, name, callback) {
       if (!obj) { return this; }
-      var id = obj._listenId || (obj._listenId = _.uniqueId('l'));
+      var id = obj._listenId || (obj._listenId = lodash.uniqueId('l'));
       var listeningTo = this._listeningTo || (this._listeningTo = {});
       var listening = listeningTo[id];
 
       // This object is not listening to any other events on `obj` yet.
       // Setup the necessary references to track the listening callbacks.
       if (!listening) {
-        var thisId = this._listenId || (this._listenId = _.uniqueId('l'));
+        var thisId = this._listenId || (this._listenId = lodash.uniqueId('l'));
         listening = listeningTo[id] = {obj: obj, objId: id, id: thisId, listeningTo: listeningTo, count: 0};
       }
 
@@ -256,7 +256,7 @@ angular.module('angular.models')
       var listeningTo = this._listeningTo;
       if (!listeningTo) { return this; }
 
-      var ids = obj ? [obj._listenId] : _.keys(listeningTo);
+      var ids = obj ? [obj._listenId] : lodash.keys(listeningTo);
 
       for (var i = 0; i < ids.length; i++) {
         var listening = listeningTo[ids[i]];
@@ -267,7 +267,7 @@ angular.module('angular.models')
 
         listening.obj.off(name, callback, this);
       }
-      if (_.isEmpty(listeningTo)) { this._listeningTo = void 0; }
+      if (lodash.isEmpty(listeningTo)) { this._listeningTo = void 0; }
 
       return this;
     },
@@ -285,7 +285,7 @@ angular.module('angular.models')
      */
     once: function once(name, callback, context) {
       // Map the event into a `{event: once}` object.
-      var events = eventsApi(onceMap, {}, name, callback, _.bind(this.off, this));
+      var events = eventsApi(onceMap, {}, name, callback, lodash.bind(this.off, this));
       return this.on(events, void 0, context);
     },
 
@@ -299,7 +299,7 @@ angular.module('angular.models')
      */
     listenToOnce: function listenToOnce(obj, name, callback) {
       // Map the event into a `{event: once}` object.
-      var events = eventsApi(onceMap, {}, name, callback, _.bind(this.stopListening, this, obj));
+      var events = eventsApi(onceMap, {}, name, callback, lodash.bind(this.stopListening, this, obj));
       return this.listenTo(obj, events);
     },
 
