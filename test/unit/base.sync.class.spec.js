@@ -50,7 +50,7 @@ describe('BaseSyncClass', function () {
     expect(headers['accept']).toEqual('application/json');
   });
 
-  it('transform response and response', function () {
+  xit('transform response and response', function () {
     function transformRequest(data) {
       return {data: data};
     }

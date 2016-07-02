@@ -102,7 +102,7 @@ module.exports = function (grunt) {
       'dist': {
         options: {
           banner: '<%= meta.banner %>\n\n'+
-                  '(function (window, angular, undefined) {\n',
+                  '(function (window, angular) {\n',
           footer: '})(window, window.angular);'
         },
         src: ['<%= app.src %>'],

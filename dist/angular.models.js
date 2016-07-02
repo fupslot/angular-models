@@ -7,7 +7,7 @@
  * @license MIT License
  */
 
-(function (window, angular, undefined) {
+(function (window, angular) {
 'use strict';
 angular.module('angular.models', ['ngLodash']);
 
@@ -1775,9 +1775,6 @@ angular.module('angular.models')
           params.cache = this.change;
         }
 
-        params.transformResponse = this.$transformResponse;
-        params.transformRequest = this.$transformRequest;
-
         options.success = options.success || angular.noop;
         options.error = options.error || angular.noop;
 
@@ -1791,32 +1788,8 @@ angular.module('angular.models')
        * @description If true, a default $http cache will be used to cache the GET request
        * @type {Boolean}
        */
-      cache: {value: false, writable: true},
+      cache: {value: false, writable: true}
 
-      /**
-       * @function BaseSyncClass#transformResponse
-       * @description A transform function or an array of such functions.
-       *              The transform function takes the http response body,
-       *              headers and status and returns its transformed (typically deserialized)
-       *              version.
-       * @param  {Object|Array} data  A response object or an array
-       * @param  {Object} headers Headers getter
-       * @param  {Object} status  A status that server respond with
-       * @return {Object} A transformed response
-       */
-      $transformResponse: function $transformResponse(data) {
-        return data;
-      },
-
-      /**
-       * @function BaseSyncClass#$transformResponse
-       * @description Transform response function
-       * @param  {Object} data A request data
-       * @return {Object}  A transformed request
-       */
-      $transformRequest: function $transformRequest(data){
-        return data;
-      }
     }, {extend: Extend});
   }];
 });
